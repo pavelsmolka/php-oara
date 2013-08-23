@@ -123,7 +123,7 @@ class Oara_Network_Publisher_Ebay extends Oara_Network {
 
 		$urls = array();
 		$urls[] = new Oara_Curl_Request('https://publisher.ebaypartnernetwork.com/PublisherReportsTx?', $valuesFromExport);
-		$exportReport = array();
+		$exportData = array();
 		try{
 			$exportReport = $this->_client->get($urls, 'content', 5);
 			$exportData = str_getcsv($exportReport[0], "\n");
