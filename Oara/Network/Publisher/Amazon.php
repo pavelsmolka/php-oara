@@ -42,6 +42,9 @@ class Oara_Network_Publisher_Amazon extends Oara_Network {
 	 * Server Url for the Network Selected
 	 */
 	private $_networkServer = null;
+	
+	
+	private $_extension = null;
 	/**
 	 * Constructor and Login
 	 * @param $credentials
@@ -80,7 +83,7 @@ class Oara_Network_Publisher_Amazon extends Oara_Network {
 		$user = $this->_credentials['user'];
 		$password = $this->_credentials['password'];
 		$network = $this->_credentials['network'];
-
+		$this->_httpLogin = $this->_credentials['httpLogin'];
 		$extension = "";
 		$handle = "";
 		$this->_networkServer = "";
@@ -131,67 +134,76 @@ class Oara_Network_Publisher_Amazon extends Oara_Network {
 				$handle = "cn";
 				break;
 		}
-
+		$this->_extension = $extension;
 		$this->_client = new Oara_Curl_Access($this->_networkServer."/gp/associates/network/main.html", array(), $this->_credentials);
 
 		// initial login page which redirects to correct sign in page, sets some cookies
 		$URL = "https://www.amazon$extension/ap/signin?openid.assoc_handle=amzn_associates_$handle&openid.return_to={$this->_networkServer}&openid.mode=checkid_setup&openid.ns=http%3A%2F%2Fspecs.openid.net%2Fauth%2F2.0&openid.claimed_id=http%3A%2F%2Fspecs.openid.net%2Fauth%2F2.0%2Fidentifier_select&openid.pape.max_auth_age=0&openid.ns.pape=http%3A%2F%2Fspecs.openid.net%2Fextensions%2Fpape%2F1.0&openid.identity=http%3A%2F%2Fspecs.openid.net%2Fauth%2F2.0%2Fidentifier_select";
-		$ch = curl_init();
-
-		if (!isset($this->_credentials["cookiesDir"])) {
-			$this->_credentials["cookiesDir"] = "Oara";
-		}
-		if (!isset($this->_credentials["cookiesSubDir"])) {
-			$this->_credentials["cookiesSubDir"] = "Import";
-		}
-		if (!isset($this->_credentials["cookieName"])) {
-			$this->_credentials["cookieName"] = "default";
-		}
-
+		
+		
 		$dir = realpath(dirname(__FILE__)).'/../../data/curl/'.$this->_credentials['cookiesDir'].'/'.$this->_credentials['cookiesSubDir'].'/';
-
 		$cookieName = $this->_credentials["cookieName"];
-
 		$cookies = $dir.$cookieName.'_cookies.txt';
-
-		curl_setopt($ch, CURLOPT_URL, $URL);
+		
+		$ch = curl_init();
 		curl_setopt($ch, CURLOPT_COOKIEJAR, $cookies);
 		curl_setopt($ch, CURLOPT_COOKIEFILE, $cookies);
 		curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (X11; U; Linux x86_64; en-US; rv:1.9.2.13) Gecko/20101206 Ubuntu/10.10 (maverick) Firefox/3.6.13');
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
 		curl_setopt($ch, CURLOPT_HEADER, 0);
 		curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
-
-		$page = curl_exec($ch);
-
+		
+		// set additional curl options using our previous options
+		curl_setopt($ch, CURLOPT_URL, $URL);
+		
+		curl_exec($ch); // make request
+		
+		$cookiesArray = self::readCookies($this->_credentials);
+		$cookieString = "";
+		foreach ($cookiesArray as $cookieName => $cookieValue){
+			$cookieString .= "&$cookieName=".urlencode($cookieValue);
+		}
+		$casperUrl = "http://affjet.dc.fubra.net/tools/amazon/amazon.php?extension=$extension&url=".urlencode($URL).$cookieString;
+		
+		
+		$context = \stream_context_create(array(
+				'http' => array(
+						'header'  => "Authorization: Basic " . base64_encode("{$this->_httpLogin}")
+				)
+		));
+			
+		
+		$page = \file_get_contents($casperUrl, false, $context);
+		
+		
 		// try to find the actual login form
 		if (!preg_match('/<form name="signIn".*?<\/form>/is', $page, $form)) {
 			die('Failed to find log in form!');
 		}
 
 		$form = $form[0];
-
+		//echo $form;
 		// find the action of the login form
 		if (!preg_match('/action="([^"]+)"/i', $form, $action)) {
 			die('Failed to find login form url');
 		}
 
 		$URL2 = $action[1]; // this is our new post url
-
-		// find all hidden fields which we need to send with our login, this includes security tokens
-		$count = preg_match_all('/<input type="hidden"\s*name="([^"]*)"\s*value="([^"]*)"/i', $form, $hiddenFields);
-
-		$postFields = array();
-
-		// turn the hidden fields into an array
-		for ($i = 0; $i < $count; ++$i) {
-			$postFields[$hiddenFields[1][$i]] = $hiddenFields[2][$i];
+		
+		$dom = new Zend_Dom_Query($page);
+		$results = $dom->query('input[type="hidden"]');
+		$hiddenValue = null;
+		foreach ($results as $result){
+			$name = $result->attributes->getNamedItem("name")->nodeValue;
+			$hiddenValue = $result->attributes->getNamedItem("value")->nodeValue;
+			$postFields[$name] = $hiddenValue;
 		}
-
 		// add our login values
 		$postFields['email'] = $user;
 		$postFields['create'] = 0;
 		$postFields['password'] = $password;
+		
+		
 
 		$post = '';
 
@@ -201,6 +213,21 @@ class Oara_Network_Publisher_Amazon extends Oara_Network {
 		}
 
 		$post = substr($post, 0, -1);
+		
+		
+		
+		
+		
+		if (!isset($this->_credentials["cookiesDir"])) {
+			$this->_credentials["cookiesDir"] = "Oara";
+		}
+		if (!isset($this->_credentials["cookiesSubDir"])) {
+			$this->_credentials["cookiesSubDir"] = "Import";
+		}
+		if (!isset($this->_credentials["cookieName"])) {
+			$this->_credentials["cookieName"] = "default";
+		}
+		
 
 		// set additional curl options using our previous options
 		curl_setopt($ch, CURLOPT_URL, $URL2);
@@ -324,7 +351,11 @@ class Oara_Network_Publisher_Amazon extends Oara_Network {
 
 		$index = 2;
 		try{
+			if (!isset($transactionExportArray[$index]) || !isset($transactionExportArray[5])){
+				throw new Exception("No date");
+			}
 			$transactionExportArray = str_getcsv(str_replace("\"", "", $exportData[$index]), "\t");
+			
 			$transactionDate = new Zend_Date($transactionExportArray[5], 'MMMM d,yyyy', 'en');
 		} catch (Exception $e){
 			$index = 3;
@@ -486,6 +517,33 @@ class Oara_Network_Publisher_Amazon extends Oara_Network {
 			$innerHTML .= trim($tmp_dom->saveHTML());
 		}
 		return $innerHTML;
+	}
+	
+	/**
+	 *
+	 * Gets the cookies value for this network
+	 * @param unknown_type $credentials
+	 */
+	private function readCookies($credentials) {
+		$dir = realpath(dirname(__FILE__)).'/../../data/curl/'.$credentials['cookiesDir'].'/'.$credentials['cookiesSubDir'].'/';
+		$cookieName = $credentials["cookieName"];
+		$cookies = $dir.$cookieName.'_cookies.txt';
+	
+		$aCookies = array();
+		$aLines = file($cookies);
+		foreach ($aLines as $line) {
+			if ('#' == $line {0})
+				continue;
+				$arr = explode("\t", $line);
+				if (isset($arr[5]) && isset($arr[6])){
+					if ($arr[0] == ".amazon{$this->_extension}"){
+						$aCookies[$arr[5]] = str_replace("\n", "", $arr[6]);
+					}
+					
+				}
+					
+		}
+		return $aCookies;
 	}
 
 }
