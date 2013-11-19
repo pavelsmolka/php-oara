@@ -11,12 +11,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/zendframework/zf1.git",
-                "reference": "6efbf4631cc47b2c5c1c5fee87c2f6191f255e70"
+                "reference": "395b0873c7c348ea082be0a77c572c8604551056"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/zendframework/zf1/zipball/6efbf4631cc47b2c5c1c5fee87c2f6191f255e70",
-                "reference": "6efbf4631cc47b2c5c1c5fee87c2f6191f255e70",
+                "url": "https://api.github.com/repos/zendframework/zf1/zipball/395b0873c7c348ea082be0a77c572c8604551056",
+                "reference": "395b0873c7c348ea082be0a77c572c8604551056",
                 "shasum": ""
             },
             "require": {
@@ -46,7 +46,7 @@
                 "ZF1",
                 "framework"
             ],
-            "time": "2013-08-05 16:58:54"
+            "time": "2013-11-12 08:57:08"
         }
     ],
     "packages-dev": [
