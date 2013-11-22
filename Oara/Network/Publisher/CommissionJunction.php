@@ -167,7 +167,7 @@ class Oara_Network_Publisher_CommissionJunction extends Oara_Network {
 		//The end data for the API has to be one day more
 		$iteration = self::calculeIterationNumber(count($merchantList), '20');
 		for ($it = 0; $it < $iteration; $it++) {
-			echo "iteration $it of $iteration \n\n";
+			//echo "iteration $it of $iteration \n\n";
 			//echo "mechant".$cid." ".count($totalTransactions)."\n\n";
 			$merchantSlice = array_slice($merchantList, $it * 20, 20);
 			try {
@@ -185,7 +185,7 @@ class Oara_Network_Publisher_CommissionJunction extends Oara_Network {
 				for ($j = 0; $j < $dateArraySize; $j++) {
 					$transactionDateEnd = clone $dateArray[$j];
 					$transactionDateEnd->addDay(1);
-					echo $dateArray[$j]->toString("yyyy-MM-dd")."\n\n";
+					//echo $dateArray[$j]->toString("yyyy-MM-dd")."\n\n";
 					$restUrl = 'https://commission-detail.api.cj.com/v3/commissions?cids='.implode(',', $merchantSlice).'&date-type=event&start-date='.$dateArray[$j]->toString("yyyy-MM-dd").'&end-date='.$transactionDateEnd->toString("yyyy-MM-dd");
 					try {
 						$totalTransactions = array_merge($totalTransactions, self::getTransactionsXml($restUrl, $merchantList));
@@ -198,7 +198,7 @@ class Oara_Network_Publisher_CommissionJunction extends Oara_Network {
 								$done = true;
 							} catch (Exception $e) {
 								$try++;
-								echo "try again $try\n\n";
+								//echo "try again $try\n\n";
 							}
 						}
 						if ($try == 5) {

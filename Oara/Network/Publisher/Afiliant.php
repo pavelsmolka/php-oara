@@ -106,7 +106,7 @@ class Oara_Network_Publisher_Afiliant extends Oara_Network {
 			$exportReport = $this->_client->get($urls);
 			$exportData = str_getcsv($exportReport[0], "\r\n");
 		} catch(Exception $e){
-			echo "No data";
+			//echo "No data";
 		}
 		if ($exportData != null){
 			$num = count($exportData);

@@ -318,7 +318,7 @@ class Oara_Network_Publisher_PaidOnResults extends Oara_Network {
 				$monthEndDate->setMinute(59);
 				$monthEndDate->setSecond(59);
 
-				echo "\n importing from ".$monthStartDate->toString("dd-MM-yyyy HH:mm:ss")." to ".$monthEndDate->toString("dd-MM-yyyy HH:mm:ss")."\n";
+				//echo "\n importing from ".$monthStartDate->toString("dd-MM-yyyy HH:mm:ss")." to ".$monthEndDate->toString("dd-MM-yyyy HH:mm:ss")."\n";
 
 				$urls = array();
 				$valuesFormExport = Oara_Utilities::cloneArray($this->_exportTransactionParameters);
@@ -335,7 +335,7 @@ class Oara_Network_Publisher_PaidOnResults extends Oara_Network {
 					if (in_array($transactionExportArray[0], $merchantList) && $paid) {
 
 						$transactionDate = new Zend_Date($transactionExportArray[8], "dd/MM/yyyy HH:mm:ss");
-						echo $paymentEndDate->toString("yyyy-MM-dd")."  ".$transactionDate->toString("yyyy-MM-dd")."\n\n";
+						//echo $paymentEndDate->toString("yyyy-MM-dd")."  ".$transactionDate->toString("yyyy-MM-dd")."\n\n";
 						if ($paymentEndDate->toString("yyyy-MM-dd") == $transactionDate->toString("yyyy-MM-dd")) {
 							$paymentTransactionList[] = $transactionExportArray[2];
 						}
