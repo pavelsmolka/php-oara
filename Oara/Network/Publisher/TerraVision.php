@@ -87,18 +87,9 @@ class Oara_Network_Publisher_TerraVision extends Oara_Network {
 	 */
 	public function getTransactionList($merchantList = null, Zend_Date $dStartDate = null, Zend_Date $dEndDate = null, $merchantMap = null) {
 		$totalTransactions = Array();
-
-		return $totalTransactions;
-
-	}
-
-	/**
-	 * (non-PHPdoc)
-	 * @see library/Oara/Network/Oara_Network_Publisher_Base#getOverviewList($merchantId, $dStartDate, $dEndDate)
-	 */
-	public function getOverviewList($transactionList = null, $merchantList = null, Zend_Date $dStartDate = null, Zend_Date $dEndDate = null, $merchantMap = null) {
+		
 		$totalOverviews = Array();
-
+		
 		$urls = array();
 		$urls[] = new Oara_Curl_Request('http://book.terravision.eu/partner/my/stats', array());
 		$exportReport = $this->_client->get($urls);
@@ -108,7 +99,7 @@ class Oara_Network_Publisher_TerraVision extends Oara_Network {
 		foreach ($results as $result) {
 			$token = $result->getAttribute("value");
 		}
-
+		
 		$valuesFormExport = array();
 		$valuesFormExport[] = new Oara_Curl_Parameter('form[year]', $dStartDate->toString("yyyy"));
 		$valuesFormExport[] = new Oara_Curl_Parameter('fform[_token]', $token);
@@ -116,35 +107,49 @@ class Oara_Network_Publisher_TerraVision extends Oara_Network {
 		$urls = array();
 		$urls[] = new Oara_Curl_Request('http://book.terravision.eu/partner/my/stats?', $valuesFormExport);
 		$exportReport = $this->_client->post($urls);
-
+		
 		$stringToFind = $dStartDate->toString("MM-yyyy");
 		/*** load the html into the object ***/
 		$dom = new Zend_Dom_Query($exportReport[0]);
 		$results = $dom->query('.frame > table');
 		$exportData = self::htmlToCsv(self::DOMinnerHTML($results->current()));
 		$num = count($exportData);
+		
+		$transactionCounter = 0;
+		$valueCounter = 0;
+		$commissionCounter = 0;
+		
 		for ($i = 1; $i < $num - 1; $i++) {
-			$overviewExportArray = str_getcsv($exportData[$i], ";");
-			if ($overviewExportArray[0] == $stringToFind){
-				$overview = Array();
-
-				$overview['merchantId'] = 1;
-				$overview['date'] = $dEndDate->toString("yyyy-MM-dd HH:mm:ss");
-				$overview['click_number'] = 0;
-				$overview['impression_number'] = 0;
-				$overview['transaction_number'] = $overviewExportArray[12];
-				$overview['transaction_confirmed_value'] = $overviewExportArray[14];
-				$overview['transaction_confirmed_commission'] = $overviewExportArray[16];
-				$overview['transaction_pending_value'] = 0;
-				$overview['transaction_pending_commission'] = 0;
-				$overview['transaction_declined_value'] = 0;
-				$overview['transaction_declined_commission'] = 0;
-				$overview['transaction_paid_value'] = 0;
-				$overview['transaction_paid_commission'] = 0;
-				$totalOverviews[] = $overview;
+			$transactionArray = str_getcsv($exportData[$i], ";");
+			if ($transactionArray[0] == $stringToFind){
+				
+				$transactionCounter = $transactionArray[12];
+				$valueCounter += $transactionArray[14];
+				$commissionCounter += $transactionArray[16];
 			}
 		}
-		return $totalOverviews;
+		
+		
+		if ($transactionCounter > 0){
+			$dateList = Oara_Utilities::daysOfDifference($dStartDate, $dEndDate);
+			for ($i = 0; $i < count($dateList); $i++){
+		
+				$transaction = array();
+				$transaction['merchantId'] = 1;
+				$transaction['status'] = Oara_Utilities::STATUS_CONFIRMED;
+					
+				$transaction['date'] = $dateList[$i]->toString("yyyy-MM-dd HH:mm:ss");
+		
+				$transaction['amount'] = $valueCounter/count($dateList);
+				$transaction['commission'] = $commissionCounter/count($dateList);
+		
+				$totalTransactions[] = $transaction;
+			}
+		
+		}
+
+		return $totalTransactions;
+
 	}
 
 	/**

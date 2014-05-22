@@ -113,8 +113,10 @@ class Oara_Network_Publisher_WebGains extends Oara_Network {
 
 			foreach ($loginUrlArray as $country => $url){
 				$this->_webClient = new Oara_Curl_Access($url, $valuesLogin, $credentials);
-				if (preg_match("/\/affiliates\/logout\.html/", $this->_webClient->getConstructResult())) {
+				if (preg_match("/program\/list\/index\/joined\/joined/", $this->_webClient->getConstructResult())) {
 					$this->_server = $serverArray[$country];
+					
+					$this->_campaignMap = self::getCampaignMap($this->_webClient->getConstructResult());
 					break;
 				}
 			}
@@ -148,13 +150,11 @@ class Oara_Network_Publisher_WebGains extends Oara_Network {
 		 * @see library/Oara/Network/Oara_Network_Publisher_Base#getMerchantList()
 		 */
 		public function getMerchantList() {
-			$this->_campaignMap = self::getCampaignMap();
-
 			$merchantList = Array();
 			foreach ($this->_campaignMap as $campaignKey => $campaignValue) {
 				$merchants = $this->_soapClient->getProgramsWithMembershipStatus($this->_exportMerchantParameters['username'], $this->_exportMerchantParameters['password'], $campaignKey);
 				foreach ($merchants as $merchant) {
-					if ($merchant->programMembershipStatusName == 'Live') {
+					if ($merchant->programMembershipStatusName == 'Live' || $merchant->programMembershipStatusName == 'Joined') {
 						$merchantList[$merchant->programID] = $merchant;
 					}
 
@@ -223,83 +223,20 @@ class Oara_Network_Publisher_WebGains extends Oara_Network {
 			}
 			return $totalTransactions;
 		}
-		/**
-		 * (non-PHPdoc)
-		 * @see library/Oara/Network/Oara_Network_Publisher_Base#getOverviewList($merchantId,$dStartDate,$dEndDate)
-		 */
-		public function getOverviewList($transactionList = array(), $merchantList = null, Zend_Date $dStartDate = null, Zend_Date $dEndDate = null, $merchantMap = null) {
-			$totalOverviews = Array();
-			$transactionArray = Oara_Utilities::transactionMapPerDay($transactionList);
-			foreach ($transactionArray as $merchantId => $merchantTransaction) {
-				foreach ($merchantTransaction as $date => $transactionList) {
-
-					$overview = Array();
-
-					$overview['merchantId'] = $merchantId;
-					$overviewDate = new Zend_Date($date, "yyyy-MM-dd");
-					$overview['date'] = $overviewDate->toString("yyyy-MM-dd HH:mm:ss");
-					$overview['click_number'] = 0;
-					$overview['impression_number'] = 0;
-					$overview['transaction_number'] = 0;
-					$overview['transaction_confirmed_value'] = 0;
-					$overview['transaction_confirmed_commission'] = 0;
-					$overview['transaction_pending_value'] = 0;
-					$overview['transaction_pending_commission'] = 0;
-					$overview['transaction_declined_value'] = 0;
-					$overview['transaction_declined_commission'] = 0;
-					$overview['transaction_paid_value'] = 0;
-					$overview['transaction_paid_commission'] = 0;
-					foreach ($transactionList as $transaction) {
-						$overview['transaction_number']++;
-						if ($transaction['status'] == Oara_Utilities::STATUS_CONFIRMED) {
-							$overview['transaction_confirmed_value'] += $transaction['amount'];
-							$overview['transaction_confirmed_commission'] += $transaction['commission'];
-						} else
-						if ($transaction['status'] == Oara_Utilities::STATUS_PENDING) {
-							$overview['transaction_pending_value'] += $transaction['amount'];
-							$overview['transaction_pending_commission'] += $transaction['commission'];
-						} else
-						if ($transaction['status'] == Oara_Utilities::STATUS_DECLINED) {
-							$overview['transaction_declined_value'] += $transaction['amount'];
-							$overview['transaction_declined_commission'] += $transaction['commission'];
-						} else
-						if ($transaction['status'] == Oara_Utilities::STATUS_PAID) {
-							$overview['transaction_paid_value'] += $transaction['amount'];
-							$overview['transaction_paid_commission'] += $transaction['commission'];
-						}
-					}
-					$totalOverviews[] = $overview;
-				}
-			}
-
-			return $totalOverviews;
-		}
 
 		/**
 		 * Get the campaings identifiers and returns it in an array.
 		 * @return array
 		 */
-		private function getCampaignMap() {
+		private function getCampaignMap($html) {
 			$campaingMap = array();
-			$urls = array();
-			$urls[] = new Oara_Curl_Request("http://{$this->_server}/affiliates/report.html?f=0&action=sf", array());
-			$exportReport = $this->_webClient->get($urls);
-			$matches = array();
-			if (preg_match("/<select name=\"campaignswitchid\" class=\"formelement\" style=\"width:134px\">([^\t]*)<\/select>/", $exportReport[0], $matches)) {
-
-				if (preg_match_all("/<option value=\"(.*)\" .*>(.*)<\/option>/", $matches[1], $matches)) {
-					$campaingNumber = count($matches[1]);
-					$i = 0;
-					while ($i < $campaingNumber) {
-						$campaingMap[$matches[1][$i]] = $matches[2][$i];
-						$i++;
-					}
-				} else {
-					throw new Exception('No campaigns found');
-				}
-
-			} else {
-				throw new Exception("No campaigns found");
+			
+			$dom = new Zend_Dom_Query($html);
+			$results = $dom->query('#affiliateCampaignSelector');
+			$merchantLines = $results->current()->childNodes;
+			for ($i = 0; $i < $merchantLines->length; $i++) {
+				$cid = $merchantLines->item($i)->attributes->getNamedItem("value")->nodeValue;
+				$campaingMap[$cid] = $merchantLines->item($i)->nodeValue;
 			}
 			return $campaingMap;
 		}
@@ -310,7 +247,7 @@ class Oara_Network_Publisher_WebGains extends Oara_Network {
 		 */
 		public function getPaymentHistory() {
 			$paymentHistory = array();
-
+			
 			$urls = array();
 
 			$urls[] = new Oara_Curl_Request("https://{$this->_server}/affiliates/payment.html", array());

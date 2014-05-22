@@ -128,11 +128,6 @@ class Oara_Network_Publisher_VpnAffiliates extends Oara_Network {
 			
 			$transaction ['amount'] = Oara_Utilities::parseDouble ( $transactionExportArray [1] );
 			$transaction ['commission'] = Oara_Utilities::parseDouble ( $transactionExportArray [0] );
-			
-			if (preg_match ( "/renegadegames\.co\.uk/", $this->_credentials ["user"] )) {
-				$transaction ['amount'] = $transaction ['amount'] * 1.8;
-				$transaction ['commission'] = $transaction ['commission'] * 1.8;
-			}
 			// print_r($transaction);
 			
 			if ($transaction ['date'] >= $dStartDate->toString ( "yyyy-MM-dd HH:mm:ss" ) && $transaction ['date'] <= $dEndDate->toString ( "yyyy-MM-dd HH:mm:ss" )) {
@@ -142,60 +137,7 @@ class Oara_Network_Publisher_VpnAffiliates extends Oara_Network {
 		
 		return $totalTransactions;
 	}
-	
-	/**
-	 * (non-PHPdoc)
-	 * 
-	 * @see library/Oara/Network/Oara_Network_Publisher_Base#getOverviewList($merchantId, $dStartDate, $dEndDate)
-	 */
-	public function getOverviewList($transactionList = null, $merchantList = null, Zend_Date $dStartDate = null, Zend_Date $dEndDate = null, $merchantMap = null) {
-		$overviewArray = Array ();
-		$transactionArray = Oara_Utilities::transactionMapPerDay ( $transactionList );
-		
-		// Add transactions
-		foreach ( $transactionArray as $merchantId => $merchantTransaction ) {
-			foreach ( $merchantTransaction as $date => $transactionList ) {
-				
-				$overview = Array ();
-				
-				$overview ['merchantId'] = $merchantId;
-				$overviewDate = new Zend_Date ( $date, "yyyy-MM-dd" );
-				$overview ['date'] = $overviewDate->toString ( "yyyy-MM-dd HH:mm:ss" );
-				unset ( $overviewDate );
-				$overview ['click_number'] = 0;
-				$overview ['impression_number'] = 0;
-				$overview ['transaction_number'] = 0;
-				$overview ['transaction_confirmed_value'] = 0;
-				$overview ['transaction_confirmed_commission'] = 0;
-				$overview ['transaction_pending_value'] = 0;
-				$overview ['transaction_pending_commission'] = 0;
-				$overview ['transaction_declined_value'] = 0;
-				$overview ['transaction_declined_commission'] = 0;
-				$overview ['transaction_paid_value'] = 0;
-				$overview ['transaction_paid_commission'] = 0;
-				foreach ( $transactionList as $transaction ) {
-					$overview ['transaction_number'] ++;
-					if ($transaction ['status'] == Oara_Utilities::STATUS_CONFIRMED) {
-						$overview ['transaction_confirmed_value'] += $transaction ['amount'];
-						$overview ['transaction_confirmed_commission'] += $transaction ['commission'];
-					} else if ($transaction ['status'] == Oara_Utilities::STATUS_PENDING) {
-						$overview ['transaction_pending_value'] += $transaction ['amount'];
-						$overview ['transaction_pending_commission'] += $transaction ['commission'];
-					} else if ($transaction ['status'] == Oara_Utilities::STATUS_DECLINED) {
-						$overview ['transaction_declined_value'] += $transaction ['amount'];
-						$overview ['transaction_declined_commission'] += $transaction ['commission'];
-					} else if ($transaction ['status'] == Oara_Utilities::STATUS_PAID) {
-						$overview ['transaction_paid_value'] += $transaction ['amount'];
-						$overview ['transaction_paid_commission'] += $transaction ['commission'];
-					}
-				}
-				$overviewArray [] = $overview;
-			}
-		}
-		
-		return $overviewArray;
-	}
-	
+
 	/**
 	 * (non-PHPdoc)
 	 * 

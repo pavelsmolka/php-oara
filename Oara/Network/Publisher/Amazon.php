@@ -83,7 +83,10 @@ class Oara_Network_Publisher_Amazon extends Oara_Network {
 		$user = $this->_credentials['user'];
 		$password = $this->_credentials['password'];
 		$network = $this->_credentials['network'];
-		$this->_httpLogin = $this->_credentials['httpLogin'];
+		$this->_httpLogin = null;
+		if (isset($this->_credentials['httpLogin'])){
+			$this->_httpLogin = $this->_credentials['httpLogin'];
+		}
 		$extension = "";
 		$handle = "";
 		$this->_networkServer = "";
@@ -163,17 +166,29 @@ class Oara_Network_Publisher_Amazon extends Oara_Network {
 		foreach ($cookiesArray as $cookieName => $cookieValue){
 			$cookieString .= "&$cookieName=".urlencode($cookieValue);
 		}
-		$casperUrl = "http://affjet.dc.fubra.net/tools/amazon/amazon.php?extension=$extension&url=".urlencode($URL).$cookieString;
 		
-		
-		$context = \stream_context_create(array(
-				'http' => array(
-						'header'  => "Authorization: Basic " . base64_encode("{$this->_httpLogin}")
-				)
-		));
+		if ($this->_httpLogin != null){
+			$casperUrl = "http://affjet.dc.fubra.net/tools/amazon/amazon.php?extension=$extension&url=".urlencode($URL).$cookieString;
 			
+			
+			
+			
+			$context = \stream_context_create(array(
+					'http' => array(
+							'header'  => "Authorization: Basic " . base64_encode("{$this->_httpLogin}")
+					)
+			));
+				
+			
+			$page = \file_get_contents($casperUrl, false, $context);
+			
+		} else {
+			ob_start();
+			$url = urlencode($URL);
+			include dirname(__FILE__)."/Amazon/amazon.php";
+			$page = ob_get_clean();
+		}
 		
-		$page = \file_get_contents($casperUrl, false, $context);
 		
 		
 		// try to find the actual login form
@@ -344,11 +359,12 @@ class Oara_Network_Publisher_Amazon extends Oara_Network {
 		$urls[] = new Oara_Curl_Request($this->_networkServer."/gp/associates/network/reports/report.html?", $valuesFromExport);
 		$exportReport = $this->_client->get($urls);
 		
-		if (preg_match("/Account Closed/", $exportReport[0])){
+		if (preg_match("/DOCTYPE/", $exportReport[0])){
 			return array();
 		}
 		$exportData = str_getcsv($exportReport[0], "\n");
 
+		
 		$index = 2;
 		try{
 			if (!isset($transactionExportArray[$index]) || !isset($transactionExportArray[5])){
@@ -384,57 +400,6 @@ class Oara_Network_Publisher_Amazon extends Oara_Network {
 
 		}
 		return $totalTransactions;
-	}
-
-	/**
-	 * (non-PHPdoc)
-	 * @see library/Oara/Network/Oara_Network_Publisher_Base#getOverviewList($merchantId, $dStartDate, $dEndDate)
-	 */
-	public function getOverviewList($transactionList = null, $merchantList = null, Zend_Date $dStartDate = null, Zend_Date $dEndDate = null, $merchantMap = null) {
-		$totalOverviews = Array();
-		$transactionArray = Oara_Utilities::transactionMapPerDay($transactionList);
-		foreach ($transactionArray as $merchantId => $merchantTransaction) {
-			foreach ($merchantTransaction as $date => $transactionList) {
-
-				$overview = Array();
-
-				$overview['merchantId'] = $merchantId;
-				$overviewDate = new Zend_Date($date, "yyyy-MM-dd");
-				$overview['date'] = $overviewDate->toString("yyyy-MM-dd HH:mm:ss");
-				$overview['click_number'] = 0;
-				$overview['impression_number'] = 0;
-				$overview['transaction_number'] = 0;
-				$overview['transaction_confirmed_value'] = 0;
-				$overview['transaction_confirmed_commission'] = 0;
-				$overview['transaction_pending_value'] = 0;
-				$overview['transaction_pending_commission'] = 0;
-				$overview['transaction_declined_value'] = 0;
-				$overview['transaction_declined_commission'] = 0;
-				$overview['transaction_paid_value'] = 0;
-				$overview['transaction_paid_commission'] = 0;
-				foreach ($transactionList as $transaction) {
-					$overview['transaction_number']++;
-					if ($transaction['status'] == Oara_Utilities::STATUS_CONFIRMED) {
-						$overview['transaction_confirmed_value'] += $transaction['amount'];
-						$overview['transaction_confirmed_commission'] += $transaction['commission'];
-					} else
-					if ($transaction['status'] == Oara_Utilities::STATUS_PENDING) {
-						$overview['transaction_pending_value'] += $transaction['amount'];
-						$overview['transaction_pending_commission'] += $transaction['commission'];
-					} else
-					if ($transaction['status'] == Oara_Utilities::STATUS_DECLINED) {
-						$overview['transaction_declined_value'] += $transaction['amount'];
-						$overview['transaction_declined_commission'] += $transaction['commission'];
-					} else
-					if ($transaction['status'] == Oara_Utilities::STATUS_PAID) {
-						$overview['transaction_paid_value'] += $transaction['amount'];
-						$overview['transaction_paid_commission'] += $transaction['commission'];
-					}
-				}
-				$totalOverviews[] = $overview;
-			}
-		}
-		return $totalOverviews;
 	}
 
 	/**

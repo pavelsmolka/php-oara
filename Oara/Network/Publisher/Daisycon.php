@@ -29,8 +29,8 @@ class Oara_Network_Publisher_Daisycon extends Oara_Network {
 
 		$sWsdl = "http://api.daisycon.com/publisher/soap/program/wsdl/";
 		$aOptions = array(
-			'login'		 => $this->_credentials["user"],
-			'password'	 => md5($this->_credentials["password"]),
+			'login'		 => $user,
+			'password'	 => md5($password),
 			'features'	 => SOAP_SINGLE_ELEMENT_ARRAYS,
 			'encoding'	 => 'utf-8',
 			'trace'		 => 1,
@@ -149,7 +149,7 @@ class Oara_Network_Publisher_Daisycon extends Oara_Network {
 		$numberIterations = self::calculeIterationNumber($resposeInfo->totalResults, 1000);
 
 		for ($i = 0; $i < $numberIterations; $i++) {
-			$aFilter = array('offset'			 => 0,
+			$aFilter = array('offset'			 => $i * 1000,
 				'limitCount'		 => 1000,
 				'program_ids'		 => $merchantList,
 				'selection_start'	 => $dStartDate->toString("yyyy-MM-dd"),
@@ -165,7 +165,7 @@ class Oara_Network_Publisher_Daisycon extends Oara_Network {
 					$transaction['unique_id'] = $transactionObject->affiliatemarketing_id;
 
 					$transaction['merchantId'] = $merchantId;
-					$transactionDate = new Zend_Date($transactionObject->date_transaction, 'MM-dd-yyyy HH:mm:ss');
+					$transactionDate = new Zend_Date($transactionObject->date_transaction, 'dd-MM-yyyyTHH:mm:ss');
 					$transaction['date'] = $transactionDate->toString("yyyy-MM-dd HH:mm:ss");
 
 					if ($transactionObject->sub_id != null) {
@@ -183,7 +183,7 @@ class Oara_Network_Publisher_Daisycon extends Oara_Network {
 								throw new Exception("New status {$transactionObject->status}");
 							}
 					$transaction['amount'] = Oara_Utilities::parseDouble($transactionObject->revenue);
-
+					$transaction['currency'] = $transactionObject->currency;
 					$transaction['commission'] = Oara_Utilities::parseDouble($transactionObject->commision);
 					$totalTransactions[] = $transaction;
 				}
@@ -193,58 +193,6 @@ class Oara_Network_Publisher_Daisycon extends Oara_Network {
 		return $totalTransactions;
 	}
 
-	/**
-	 * (non-PHPdoc)
-	 * @see library/Oara/Network/Oara_Network_Publisher_Base#getOverviewList($merchantId, $dStartDate, $dEndDate)
-	 */
-	public function getOverviewList($transactionList = null, $merchantList = null, Zend_Date $dStartDate = null, Zend_Date $dEndDate = null, $merchantMap = null) {
-		$overviewArray = Array();
-		$transactionArray = Oara_Utilities::transactionMapPerDay($transactionList);
-
-		foreach ($transactionArray as $merchantId => $merchantTransaction) {
-			foreach ($merchantTransaction as $date => $transactionList) {
-
-				$overview = Array();
-
-				$overview['merchantId'] = $merchantId;
-				$overviewDate = new Zend_Date($date, "yyyy-MM-dd");
-				$overview['date'] = $overviewDate->toString("yyyy-MM-dd HH:mm:ss");
-				$overview['click_number'] = 0;
-				$overview['impression_number'] = 0;
-				$overview['transaction_number'] = 0;
-				$overview['transaction_confirmed_value'] = 0;
-				$overview['transaction_confirmed_commission'] = 0;
-				$overview['transaction_pending_value'] = 0;
-				$overview['transaction_pending_commission'] = 0;
-				$overview['transaction_declined_value'] = 0;
-				$overview['transaction_declined_commission'] = 0;
-				$overview['transaction_paid_value'] = 0;
-				$overview['transaction_paid_commission'] = 0;
-				foreach ($transactionList as $transaction) {
-					$overview['transaction_number']++;
-					if ($transaction['status'] == Oara_Utilities::STATUS_CONFIRMED) {
-						$overview['transaction_confirmed_value'] += $transaction['amount'];
-						$overview['transaction_confirmed_commission'] += $transaction['commission'];
-					} else
-						if ($transaction['status'] == Oara_Utilities::STATUS_PENDING) {
-							$overview['transaction_pending_value'] += $transaction['amount'];
-							$overview['transaction_pending_commission'] += $transaction['commission'];
-						} else
-							if ($transaction['status'] == Oara_Utilities::STATUS_DECLINED) {
-								$overview['transaction_declined_value'] += $transaction['amount'];
-								$overview['transaction_declined_commission'] += $transaction['commission'];
-							} else
-								if ($transaction['status'] == Oara_Utilities::STATUS_PAID) {
-									$overview['transaction_paid_value'] += $transaction['amount'];
-									$overview['transaction_paid_commission'] += $transaction['commission'];
-								}
-				}
-				$overviewArray[] = $overview;
-			}
-		}
-
-		return $overviewArray;
-	}
 	/**
 	 * (non-PHPdoc)
 	 * @see Oara/Network/Oara_Network_Publisher_Base#getPaymentHistory()

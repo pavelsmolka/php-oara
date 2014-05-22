@@ -120,12 +120,20 @@ class Oara_Network_Publisher_CommissionJunction extends Oara_Network {
 	 */
 	public function checkConnection() {
 		$connection = true;
+		
+		$cookieMap = array();
+		$cookieContent = $this->_client->getCookies();
+		$cookieArray = explode("\n", $cookieContent);
+		for($i = 4 ; $i < count($cookieArray); $i++){
+			$cookieValue = explode("\t", $cookieArray[$i]);
+			if (count($cookieValue) == 7){
+				$cookieMap[$cookieValue[count($cookieValue)-2]] = $cookieValue[count($cookieValue)-1];
+			}
+			
+		}
 
-		$urls = array();
-		$urls[] = new Oara_Curl_Request('https://members.cj.com/member/publisher/home.do', array());
-		$result = $this->_client->get($urls);
-		if (preg_match("/a href=\"\/member\/(.*)?\/publisher/", $result[0], $matches)) {
-			$this->_memberId = trim($matches[1]);
+		if (isset($cookieMap["jsContactId"])) {
+			$this->_memberId = $cookieMap["jsContactId"];
 		} else {
 			return false;
 		}
@@ -167,14 +175,14 @@ class Oara_Network_Publisher_CommissionJunction extends Oara_Network {
 		//The end data for the API has to be one day more
 		$iteration = self::calculeIterationNumber(count($merchantList), '20');
 		for ($it = 0; $it < $iteration; $it++) {
-			//echo "iteration $it of $iteration \n\n";
+			echo "iteration $it of $iteration \n\n";
 			//echo "mechant".$cid." ".count($totalTransactions)."\n\n";
 			$merchantSlice = array_slice($merchantList, $it * 20, 20);
 			try {
 
 				$transactionDateEnd = clone $dEndDate;
 				$transactionDateEnd->addDay(1);
-				$restUrl = 'https://commission-detail.api.cj.com/v3/commissions?cids='.implode(',', $merchantSlice).'&date-type=event&start-date='.$dStartDate->toString("yyyy-MM-dd").'&end-date='.$transactionDateEnd->toString("yyyy-MM-dd");
+				$restUrl = 'https://commission-detail.api.cj.com/v3/commissions?cids='.implode(',', $merchantSlice).'&date-type=posting&start-date='.$dStartDate->toString("yyyy-MM-dd").'&end-date='.$transactionDateEnd->toString("yyyy-MM-dd");
 				unset($transactionDateEnd);
 				$totalTransactions = array_merge($totalTransactions, self::getTransactionsXml($restUrl, $merchantList));
 
@@ -185,8 +193,8 @@ class Oara_Network_Publisher_CommissionJunction extends Oara_Network {
 				for ($j = 0; $j < $dateArraySize; $j++) {
 					$transactionDateEnd = clone $dateArray[$j];
 					$transactionDateEnd->addDay(1);
-					//echo $dateArray[$j]->toString("yyyy-MM-dd")."\n\n";
-					$restUrl = 'https://commission-detail.api.cj.com/v3/commissions?cids='.implode(',', $merchantSlice).'&date-type=event&start-date='.$dateArray[$j]->toString("yyyy-MM-dd").'&end-date='.$transactionDateEnd->toString("yyyy-MM-dd");
+					echo $dateArray[$j]->toString("yyyy-MM-dd")."\n\n";
+					$restUrl = 'https://commission-detail.api.cj.com/v3/commissions?cids='.implode(',', $merchantSlice).'&date-type=posting&start-date='.$dateArray[$j]->toString("yyyy-MM-dd").'&end-date='.$transactionDateEnd->toString("yyyy-MM-dd");
 					try {
 						$totalTransactions = array_merge($totalTransactions, self::getTransactionsXml($restUrl, $merchantList));
 					} catch (Exception $e) {
@@ -198,7 +206,7 @@ class Oara_Network_Publisher_CommissionJunction extends Oara_Network {
 								$done = true;
 							} catch (Exception $e) {
 								$try++;
-								//echo "try again $try\n\n";
+								echo "try again $try\n\n";
 							}
 						}
 						if ($try == 5) {
@@ -235,20 +243,27 @@ class Oara_Network_Publisher_CommissionJunction extends Oara_Network {
 						$transaction['custom_id'] = self::findAttribute($singleTransaction, 'sid');
 					}
 
-					$transaction['unique_id'] = self::findAttribute($singleTransaction, 'commission-id');
-
-					if (self::findAttribute($singleTransaction, 'action-status') == 'locked' || self::findAttribute($singleTransaction, 'action-status') == 'closed') {
-						$transaction['status'] = Oara_Utilities::STATUS_CONFIRMED;
-					} else
-						if (self::findAttribute($singleTransaction, 'action-status') == 'extended' || self::findAttribute($singleTransaction, 'action-status') == 'new') {
-							$transaction['status'] = Oara_Utilities::STATUS_PENDING;
-						} else
-							if (self::findAttribute($singleTransaction, 'action-status') == 'corrected') {
-								$transaction['status'] = Oara_Utilities::STATUS_DECLINED;
-							}
-
-					$transaction['amount'] = (double) $filter->filter(self::findAttribute($singleTransaction, 'sale-amount'));
-					$transaction['commission'] = (double) $filter->filter(self::findAttribute($singleTransaction, 'commission-amount'));
+					//$transaction['unique_id'] = self::findAttribute($singleTransaction, 'commission-id');
+					$transaction ['amount'] = ( double ) $filter->filter ( self::findAttribute ( $singleTransaction, 'sale-amount' ) );
+					$transaction ['commission'] = ( double ) $filter->filter ( self::findAttribute ( $singleTransaction, 'commission-amount' ) );
+					
+					if (self::findAttribute ( $singleTransaction, 'action-status' ) == 'locked' || self::findAttribute ( $singleTransaction, 'action-status' ) == 'closed') {
+						$transaction ['status'] = Oara_Utilities::STATUS_CONFIRMED;
+					} else if (self::findAttribute ( $singleTransaction, 'action-status' ) == 'extended' || self::findAttribute ( $singleTransaction, 'action-status' ) == 'new') {
+						$transaction ['status'] = Oara_Utilities::STATUS_PENDING;
+					} else if (self::findAttribute ( $singleTransaction, 'action-status' ) == 'corrected') {
+						$transaction ['status'] = Oara_Utilities::STATUS_DECLINED;
+					}
+					
+					if ($transaction ['commission'] == 0){
+						$transaction ['status'] = Oara_Utilities::STATUS_PENDING;
+					}
+					
+					if ($transaction ['amount'] < 0 || $transaction ['commission'] < 0){
+						$transaction ['status'] = Oara_Utilities::STATUS_DECLINED;
+						$transaction ['amount'] = abs($transaction ['amount']);
+						$transaction ['commission'] = abs($transaction ['commission']);
+					}
 					$totalTransactions[] = $transaction;
 				}
 			}
@@ -261,62 +276,12 @@ class Oara_Network_Publisher_CommissionJunction extends Oara_Network {
 		$typeTransactions = array("bonus", "click", "impression", "sale", "lead", "advanced%20sale", "advanced%20lead", "performance%20incentive");
 		foreach ($typeTransactions as $type) {
 			//echo $type."\n\n";
-			$restUrl = 'https://commission-detail.api.cj.com/v3/commissions?action-types='.$type.'&cids='.$cid.'&date-type=event&start-date='.$startDate->toString("yyyy-MM-dd").'&end-date='.$endDate->toString("yyyy-MM-dd");
+			$restUrl = 'https://commission-detail.api.cj.com/v3/commissions?action-types='.$type.'&cids='.$cid.'&date-type=posting&start-date='.$startDate->toString("yyyy-MM-dd").'&end-date='.$endDate->toString("yyyy-MM-dd");
 			$totalTransactions = array_merge($totalTransactions, self::getTransactionsXml($restUrl, $merchantList));
 		}
 		return $totalTransactions;
 	}
-	/**
-	 * (non-PHPdoc)
-	 * @see library/Oara/Network/Oara_Network_Publisher_Base#getOverviewList($merchantId, $dStartDate, $dEndDate)
-	 */
-	public function getOverviewList($transactionList = null, $merchantList = null, Zend_Date $dStartDate = null, Zend_Date $dEndDate = null, $merchantMap = null) {
-		$totalOverviews = Array();
-		$transactionArray = Oara_Utilities::transactionMapPerDay($transactionList);
-		foreach ($transactionArray as $merchantId => $merchantTransaction) {
-			foreach ($merchantTransaction as $date => $transactionList) {
-
-				$overview = Array();
-
-				$overview['merchantId'] = $merchantId;
-				$overviewDate = new Zend_Date($date, "yyyy-MM-dd");
-				$overview['date'] = $overviewDate->toString("yyyy-MM-dd HH:mm:ss");
-				$overview['click_number'] = 0;
-				$overview['impression_number'] = 0;
-				$overview['transaction_number'] = 0;
-				$overview['transaction_confirmed_value'] = 0;
-				$overview['transaction_confirmed_commission'] = 0;
-				$overview['transaction_pending_value'] = 0;
-				$overview['transaction_pending_commission'] = 0;
-				$overview['transaction_declined_value'] = 0;
-				$overview['transaction_declined_commission'] = 0;
-				$overview['transaction_paid_value'] = 0;
-				$overview['transaction_paid_commission'] = 0;
-				foreach ($transactionList as $transaction) {
-					$overview['transaction_number']++;
-					if ($transaction['status'] == Oara_Utilities::STATUS_CONFIRMED) {
-						$overview['transaction_confirmed_value'] += $transaction['amount'];
-						$overview['transaction_confirmed_commission'] += $transaction['commission'];
-					} else
-						if ($transaction['status'] == Oara_Utilities::STATUS_PENDING) {
-							$overview['transaction_pending_value'] += $transaction['amount'];
-							$overview['transaction_pending_commission'] += $transaction['commission'];
-						} else
-							if ($transaction['status'] == Oara_Utilities::STATUS_DECLINED) {
-								$overview['transaction_declined_value'] += $transaction['amount'];
-								$overview['transaction_declined_commission'] += $transaction['commission'];
-							} else
-								if ($transaction['status'] == Oara_Utilities::STATUS_PAID) {
-									$overview['transaction_paid_value'] += $transaction['amount'];
-									$overview['transaction_paid_commission'] += $transaction['commission'];
-								}
-				}
-				$totalOverviews[] = $overview;
-			}
-		}
-
-		return $totalOverviews;
-	}
+	
 	/**
 	 * Gets all the merchants and returns them in an array.
 	 * @return array
