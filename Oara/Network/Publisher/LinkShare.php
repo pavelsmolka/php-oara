@@ -282,7 +282,7 @@ class Oara_Network_Publisher_LinkShare extends Oara_Network {
 		foreach ( $this->_siteList as $site ) {
 			// foreach ($merchantList as $mid){
 			
-			echo "getting Transactions for site " . $site->id . "\n\n";
+//			echo "getting Transactions for site " . $site->id . "\n\n";
 			
 			$url = "https://reportws.linksynergy.com/downloadreport.php?bdate=" . $dStartDate->toString ( "yyyyMMdd" ) . "&edate=" . $dEndDate->toString ( "yyyyMMdd" ) . "&token=" . $site->secureToken . "&nid=" . $this->_nid . "&reportid=12";
 			$result = file_get_contents ( $url );
@@ -349,7 +349,7 @@ class Oara_Network_Publisher_LinkShare extends Oara_Network {
 					$edate->subDay ( 1 );
 				}
 				
-				echo "getting Payment for Site " . $site->id . " and year " . $bdate->toString ( "yyyy" ) . " \n\n";
+//				echo "getting Payment for Site " . $site->id . " and year " . $bdate->toString ( "yyyy" ) . " \n\n";
 				// https://65.245.193.87
 				
 				$url = "https://reportws.linksynergy.com/downloadreport.php?bdate=" . $bdate->toString ( "yyyyMMdd" ) . "&edate=" . $edate->toString ( "yyyyMMdd" ) . "&token=" . $site->secureToken . "&nid=" . $this->_nid . "&reportid=1";
