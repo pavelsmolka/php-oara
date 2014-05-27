@@ -102,6 +102,7 @@ class Oara_Curl_Access {
 				CURLOPT_SSL_VERIFYHOST => false,
 				CURLOPT_HEADER => false ,
 				//CURLOPT_VERBOSE => true,
+				CURLOPT_SSLVERSION => 3, // Force SSLv3 to fix Unknown SSL Protocol error (err 35)
 				);
 		
 		// Init curl
