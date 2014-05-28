@@ -267,7 +267,7 @@ class Oara_Network_Publisher_Amazon extends Oara_Network {
 		if (preg_match("/logout%26openid.ns/", $exportReport[0])) {
 			$dom = new Zend_Dom_Query($exportReport[0]);
 			$idBox = array();
-			$results = $dom->query('select[name="idbox_store_id"]');
+			$results = $dom->query('select[name="idbox_tracking_id"]');
 			$count = count($results);
 			if ($count == 0) {
 				$idBox[] = "";
