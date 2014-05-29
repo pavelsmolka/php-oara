@@ -42,8 +42,8 @@ class Oara_Network_Publisher_Amazon extends Oara_Network {
 	 * Server Url for the Network Selected
 	 */
 	private $_networkServer = null;
-	
-	
+
+
 	private $_extension = null;
 	/**
 	 * Constructor and Login
@@ -55,24 +55,24 @@ class Oara_Network_Publisher_Amazon extends Oara_Network {
 
 		self::logIn();
 		$this->_exportTransactionParameters = array(
-		new Oara_Curl_Parameter('tag', ''),
-		new Oara_Curl_Parameter('reportType', 'earningsReport'),
-		new Oara_Curl_Parameter('program', 'all'),
-		new Oara_Curl_Parameter('preSelectedPeriod', 'monthToDate'),
-		new Oara_Curl_Parameter('periodType', 'exact'),
-		new Oara_Curl_Parameter('submit.download_CSV.x', '106'),
-		new Oara_Curl_Parameter('submit.download_CSV.y', '11'),
-		new Oara_Curl_Parameter('submit.download_CSV', 'Download report (CSV)')
+				new Oara_Curl_Parameter('tag', ''),
+				new Oara_Curl_Parameter('reportType', 'earningsReport'),
+				new Oara_Curl_Parameter('program', 'all'),
+				new Oara_Curl_Parameter('preSelectedPeriod', 'monthToDate'),
+				new Oara_Curl_Parameter('periodType', 'exact'),
+				new Oara_Curl_Parameter('submit.download_CSV.x', '106'),
+				new Oara_Curl_Parameter('submit.download_CSV.y', '11'),
+				new Oara_Curl_Parameter('submit.download_CSV', 'Download report (CSV)')
 		);
 
 		$this->_exportOverviewParameters = array(
-		new Oara_Curl_Parameter('tag', ''),
-		new Oara_Curl_Parameter('reportType', 'trendsReport'),
-		new Oara_Curl_Parameter('preSelectedPeriod', 'monthToDate'),
-		new Oara_Curl_Parameter('periodType', 'exact'),
-		new Oara_Curl_Parameter('submit.download_CSV.x', '106'),
-		new Oara_Curl_Parameter('submit.download_CSV.y', '11'),
-		new Oara_Curl_Parameter('submit.download_CSV', 'Download report (CSV)')
+				new Oara_Curl_Parameter('tag', ''),
+				new Oara_Curl_Parameter('reportType', 'trendsReport'),
+				new Oara_Curl_Parameter('preSelectedPeriod', 'monthToDate'),
+				new Oara_Curl_Parameter('periodType', 'exact'),
+				new Oara_Curl_Parameter('submit.download_CSV.x', '106'),
+				new Oara_Curl_Parameter('submit.download_CSV.y', '11'),
+				new Oara_Curl_Parameter('submit.download_CSV', 'Download report (CSV)')
 		);
 
 		$this->_exportPaymentParameters = array();
@@ -142,12 +142,12 @@ class Oara_Network_Publisher_Amazon extends Oara_Network {
 
 		// initial login page which redirects to correct sign in page, sets some cookies
 		$URL = "https://www.amazon$extension/ap/signin?openid.assoc_handle=amzn_associates_$handle&openid.return_to={$this->_networkServer}&openid.mode=checkid_setup&openid.ns=http%3A%2F%2Fspecs.openid.net%2Fauth%2F2.0&openid.claimed_id=http%3A%2F%2Fspecs.openid.net%2Fauth%2F2.0%2Fidentifier_select&openid.pape.max_auth_age=0&openid.ns.pape=http%3A%2F%2Fspecs.openid.net%2Fextensions%2Fpape%2F1.0&openid.identity=http%3A%2F%2Fspecs.openid.net%2Fauth%2F2.0%2Fidentifier_select";
-		
-		
+
+
 		$dir = realpath(dirname(__FILE__)).'/../../data/curl/'.$this->_credentials['cookiesDir'].'/'.$this->_credentials['cookiesSubDir'].'/';
 		$cookieName = $this->_credentials["cookieName"];
 		$cookies = $dir.$cookieName.'_cookies.txt';
-		
+
 		$ch = curl_init();
 		curl_setopt($ch, CURLOPT_COOKIEJAR, $cookies);
 		curl_setopt($ch, CURLOPT_COOKIEFILE, $cookies);
@@ -155,42 +155,42 @@ class Oara_Network_Publisher_Amazon extends Oara_Network {
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
 		curl_setopt($ch, CURLOPT_HEADER, 0);
 		curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
-		
+
 		// set additional curl options using our previous options
 		curl_setopt($ch, CURLOPT_URL, $URL);
-		
+
 		curl_exec($ch); // make request
-		
+
 		$cookiesArray = self::readCookies($this->_credentials);
 		$cookieString = "";
 		foreach ($cookiesArray as $cookieName => $cookieValue){
 			$cookieString .= "&$cookieName=".urlencode($cookieValue);
 		}
-		
+
 		if ($this->_httpLogin != null){
 			$casperUrl = "http://affjet.dc.fubra.net/tools/amazon/amazon.php?extension=$extension&url=".urlencode($URL).$cookieString;
-			
-			
-			
-			
+
+
+
+
 			$context = \stream_context_create(array(
 					'http' => array(
 							'header'  => "Authorization: Basic " . base64_encode("{$this->_httpLogin}")
 					)
 			));
-				
-			
+
+
 			$page = \file_get_contents($casperUrl, false, $context);
-			
+
 		} else {
 			ob_start();
 			$url = urlencode($URL);
 			include dirname(__FILE__)."/Amazon/amazon.php";
 			$page = ob_get_clean();
 		}
-		
-		
-		
+
+
+
 		// try to find the actual login form
 		if (!preg_match('/<form name="signIn".*?<\/form>/is', $page, $form)) {
 			die('Failed to find log in form!Please verify you have installed casperjs (http://casperjs.org/) in your machine.');
@@ -204,7 +204,7 @@ class Oara_Network_Publisher_Amazon extends Oara_Network {
 		}
 
 		$URL2 = $action[1]; // this is our new post url
-		
+
 		$dom = new Zend_Dom_Query($page);
 		$results = $dom->query('input[type="hidden"]');
 		$hiddenValue = null;
@@ -217,8 +217,8 @@ class Oara_Network_Publisher_Amazon extends Oara_Network {
 		$postFields['email'] = $user;
 		$postFields['create'] = 0;
 		$postFields['password'] = $password;
-		
-		
+
+
 
 		$post = '';
 
@@ -228,11 +228,11 @@ class Oara_Network_Publisher_Amazon extends Oara_Network {
 		}
 
 		$post = substr($post, 0, -1);
-		
-		
-		
-		
-		
+
+
+
+
+
 		if (!isset($this->_credentials["cookiesDir"])) {
 			$this->_credentials["cookiesDir"] = "Oara";
 		}
@@ -242,7 +242,7 @@ class Oara_Network_Publisher_Amazon extends Oara_Network {
 		if (!isset($this->_credentials["cookieName"])) {
 			$this->_credentials["cookieName"] = "default";
 		}
-		
+
 
 		// set additional curl options using our previous options
 		curl_setopt($ch, CURLOPT_URL, $URL2);
@@ -263,14 +263,14 @@ class Oara_Network_Publisher_Amazon extends Oara_Network {
 		$urls = array();
 		$urls[] = new Oara_Curl_Request($this->_networkServer."/gp/associates/network/main.html", array());
 		$exportReport = $this->_client->get($urls);
-		
+
 		if (preg_match("/logout%26openid.ns/", $exportReport[0])) {
 			$dom = new Zend_Dom_Query($exportReport[0]);
 			$idBox = array();
 			$results = $dom->query('select[name="idbox_tracking_id"]');
 			$count = count($results);
 			if ($count == 0) {
-				$idBox[] = "";
+				$idBox[] = '';
 			} else {
 				foreach ($results as $result) {
 					$optionList = $result->childNodes;
@@ -353,25 +353,25 @@ class Oara_Network_Publisher_Amazon extends Oara_Network {
 		$valuesFromExport[] = new Oara_Curl_Parameter('endDay', $endDate->toString("d"));
 		$valuesFromExport[] = new Oara_Curl_Parameter('endMonth', (int) $endDate->toString("M") - 1);
 		$valuesFromExport[] = new Oara_Curl_Parameter('endYear', $endDate->toString("yyyy"));
-		$valuesFromExport[] = new Oara_Curl_Parameter('idbox_store_id', $id);
+		$valuesFromExport[] = new Oara_Curl_Parameter('idbox_tracking_id', $id);
 
 		$urls = array();
 		$urls[] = new Oara_Curl_Request($this->_networkServer."/gp/associates/network/reports/report.html?", $valuesFromExport);
 		$exportReport = $this->_client->get($urls);
-		
+
 		if (preg_match("/DOCTYPE/", $exportReport[0])){
 			return array();
 		}
 		$exportData = str_getcsv($exportReport[0], "\n");
 
-		
+
 		$index = 2;
 		try{
 			if (!isset($transactionExportArray[$index]) || !isset($transactionExportArray[5])){
 				throw new Exception("No date");
 			}
 			$transactionExportArray = str_getcsv(str_replace("\"", "", $exportData[$index]), "\t");
-			
+
 			$transactionDate = new Zend_Date($transactionExportArray[5], 'MMMM d,yyyy', 'en');
 		} catch (Exception $e){
 			$index = 3;
@@ -408,39 +408,43 @@ class Oara_Network_Publisher_Amazon extends Oara_Network {
 	 */
 	public function getPaymentHistory() {
 		$paymentHistory = array();
-		foreach ($this->_idBox as $id) {
-			$urls = array();
-			$paymentExport = array();
-			$paymentExport[] = new Oara_Curl_Parameter('idbox_store_id', $id);
-			$urls[] = new Oara_Curl_Request($this->_networkServer."/gp/associates/network/your-account/payment-history.html?", $paymentExport);
-			$exportReport = $this->_client->get($urls);
-			$dom = new Zend_Dom_Query($exportReport[0]);
-			$results = $dom->query('.paymenthistory');
-			$count = count($results);
-			$yearArray = array();
-			if ($count == 1) {
-				$paymentTable = $results->current();
-				$paymentReport = self::htmlToCsv(self::DOMinnerHTML($paymentTable));
-				for ($i = 2; $i < count($paymentReport) - 1; $i++) {
-					$paymentExportArray = str_getcsv($paymentReport[$i], ";");
 
-					$obj = array();
-					$paymentDate = new Zend_Date($paymentExportArray[0], "M d yyyy", "en");
-					$obj['date'] = $paymentDate->toString("yyyy-MM-dd HH:mm:ss");
-					$obj['pid'] = ($paymentDate->toString("yyyyMMdd").substr((string) base_convert(md5($id), 16, 10), 0, 5));
-					$obj['method'] = 'BACS';
-					if (preg_match("/[0-9]*,?[0-9]*\.?[0-9]+/", $paymentExportArray[4], $matches)) {
-						$obj['value'] = Oara_Utilities::parseDouble($matches[0]);
-						$paymentHistory[] = $obj;
-					}
+		// The idbox parameter is not taken into account for payment history, no need to iterate
 
+		$urls = array();
+		$urls[] = new Oara_Curl_Request($this->_networkServer."/gp/associates/network/your-account/payment-history.html?", array());
+		$exportReport = $this->_client->get($urls);
+		$dom = new Zend_Dom_Query($exportReport[0]);
+		$results = $dom->query('.paymenthistory');
+		$count = count($results);
+		$yearArray = array();
+
+		if ($count == 1) {
+			$paymentTable = $results->current();
+			$paymentReport = self::htmlToCsv(self::DOMinnerHTML($paymentTable));
+			for ($i = 2; $i < count($paymentReport) - 1; $i++) {
+				$paymentExportArray = str_getcsv($paymentReport[$i], ";");
+
+				$obj = array();
+				$paymentDate = new Zend_Date($paymentExportArray[0], "M d yyyy", "en");
+				$obj['date'] = $paymentDate->toString("yyyy-MM-dd HH:mm:ss");
+				$obj['pid'] = ($paymentDate->toString("yyyyMMdd"));
+				$obj['method'] = 'BACS';
+				// TODO we might potentially want to filter some values -> there are duplicities (credit + debit)
+				if (preg_match("/[0-9]*,?[0-9]*\.?[0-9]+/", $paymentExportArray[4], $matches)) {
+					$obj['value'] = Oara_Utilities::parseDouble($matches[0]);
+					$paymentHistory[] = $obj;
 				}
-			} else {
-				//throw new Exception('Problem getting the payments');
+
 			}
+		} else {
+			//throw new Exception('Problem getting the payments');
 		}
+
 		return $paymentHistory;
 	}
+
+
 	/**
 	 *
 	 * Function that Convert from a table to Csv
@@ -483,7 +487,7 @@ class Oara_Network_Publisher_Amazon extends Oara_Network {
 		}
 		return $innerHTML;
 	}
-	
+
 	/**
 	 *
 	 * Gets the cookies value for this network
@@ -493,20 +497,20 @@ class Oara_Network_Publisher_Amazon extends Oara_Network {
 		$dir = realpath(dirname(__FILE__)).'/../../data/curl/'.$credentials['cookiesDir'].'/'.$credentials['cookiesSubDir'].'/';
 		$cookieName = $credentials["cookieName"];
 		$cookies = $dir.$cookieName.'_cookies.txt';
-	
+
 		$aCookies = array();
 		$aLines = file($cookies);
 		foreach ($aLines as $line) {
 			if ('#' == $line {0})
 				continue;
-				$arr = explode("\t", $line);
-				if (isset($arr[5]) && isset($arr[6])){
-					if ($arr[0] == ".amazon{$this->_extension}"){
-						$aCookies[$arr[5]] = str_replace("\n", "", $arr[6]);
-					}
-					
+			$arr = explode("\t", $line);
+			if (isset($arr[5]) && isset($arr[6])){
+				if ($arr[0] == ".amazon{$this->_extension}"){
+					$aCookies[$arr[5]] = str_replace("\n", "", $arr[6]);
 				}
-					
+
+			}
+
 		}
 		return $aCookies;
 	}
