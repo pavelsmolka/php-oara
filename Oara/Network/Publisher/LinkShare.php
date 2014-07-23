@@ -303,7 +303,7 @@ class Oara_Network_Publisher_LinkShare extends Oara_Network {
 					if ($transactionData [0] != '<none>') {
 						$transaction ['custom_id'] = $transactionData [0];
 					}
-					$transaction ['unique_id'] = $transactionData [3];
+					$transaction ['unique_id'] = $transactionData [3]."_".$transactionData [6];
 					
 					$sales = $filter->filter ( $transactionData [7] );
 					
@@ -316,6 +316,12 @@ class Oara_Network_Publisher_LinkShare extends Oara_Network {
 					$transaction ['amount'] = $filter->filter ( $transactionData [7] );
 					
 					$transaction ['commission'] = $filter->filter ( $transactionData [9] );
+					
+					if ($transaction ['commission'] < 0){
+						$transaction ['amount'] = 0;
+						$transaction ['commission'] = 0;
+						$transaction ['status'] =  Oara_Utilities::STATUS_DECLINED;
+					}
 					
 					$totalTransactions [] = $transaction;
 				}
@@ -387,6 +393,7 @@ class Oara_Network_Publisher_LinkShare extends Oara_Network {
 	 */
 	public function paymentTransactions($paymentId, $merchantList, $startDate) {
 		$transactionList = array ();
+		/*
 		foreach ( $this->_siteList as $site ) {
 			
 			$url = "https://reportws.linksynergy.com/downloadreport.php?payid=$paymentId&token=" . $site->secureToken . "&reportid=2";
@@ -412,6 +419,7 @@ class Oara_Network_Publisher_LinkShare extends Oara_Network {
 				}
 			}
 		}
+		*/
 		return $transactionList;
 	}
 	

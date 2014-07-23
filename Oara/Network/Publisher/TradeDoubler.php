@@ -359,13 +359,17 @@ class Oara_Network_Publisher_TradeDoubler extends Oara_Network {
 				$transactionDate = self::toDate($transactionExportArray[4]);
 				$transaction['date'] = $transactionDate->toString("yyyy-MM-dd HH:mm:ss");
 				if ($transactionExportArray[8] != '') {
-					$transaction['unique_id'] = $transactionExportArray[8];
+					$transaction['unique_id'] = substr($transactionExportArray[8], 0,200);
 				} else
 				if ($transactionExportArray[7] != '') {
-					$transaction['unique_id'] = $transactionExportArray[7];
+					$transaction['unique_id'] = substr($transactionExportArray[7], 0,200);
 				} else {
 					throw new Exception("No Identifier");
 				}
+				
+				
+				
+				
 				if ($transactionExportArray[9] != '') {
 					$transaction['custom_id'] = $transactionExportArray[9];
 				}
@@ -573,6 +577,9 @@ class Oara_Network_Publisher_TradeDoubler extends Oara_Network {
 		}else
 		if ($this->_dateFormat == 'yyyy/MM/dd') {
 			$dateString = $date->toString('yyyy/MM/dd');
+		}else
+		if ($this->_dateFormat == 'yyyy-MM-dd') {
+			$dateString = $date->toString('yyyy-MM-dd');
 		} else {
 			throw new Exception("\n Date Format not supported ".$this->_dateFormat."\n");
 		}
@@ -615,6 +622,9 @@ class Oara_Network_Publisher_TradeDoubler extends Oara_Network {
 		}  else
 		if ($this->_dateFormat == 'yyyy/MM/dd') {
 			$transactionDate = new Zend_Date(trim($dateString), "yyyy/MM/dd HH:mm:ss");
+		}  else
+		if ($this->_dateFormat == 'yyyy-MM-dd') {
+			$transactionDate = new Zend_Date(trim($dateString), "yyyy-MM-dd HH:mm:ss");
 		}else {
 			throw new Exception("\n Date Format not supported ".$this->_dateFormat."\n");
 		}
