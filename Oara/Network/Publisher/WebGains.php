@@ -221,23 +221,11 @@ class Oara_Network_Publisher_WebGains extends Oara_Network {
 							$transaction['custom_id'] = $transactionObject->clickRef;
 						}
 
-						$transaction['status'] = null;
 						$transaction['amount'] = $transactionObject->saleValue;
 						$transaction['commission'] = $transactionObject->commission;
-
-						if ($transactionObject->paymentStatus == 'cleared' || $transactionObject->paymentStatus == 'paid') {
-							$transaction['status'] = Oara_Utilities::STATUS_CONFIRMED;
-						} else
-						if ($transactionObject->paymentStatus == 'notcleared') {
-							$transaction['status'] = Oara_Utilities::STATUS_PENDING;
-						} else
-						if ($transactionObject->paymentStatus == 'cancelled') {
-							$transaction['status'] = Oara_Utilities::STATUS_DECLINED;
-						} else {
-							throw new Exception('Error in the transaction status '. $transactionObject->paymentStatus);
-						}
+						$transaction['status'] = $this->getTransactionStatus($transactionObject);
 						$transaction['currency'] = $transactionObject->currency;
-						
+
 						$totalTransactions[] = $transaction;
 					}
 				}
@@ -245,6 +233,55 @@ class Oara_Network_Publisher_WebGains extends Oara_Network {
 			}
 			return $totalTransactions;
 		}
+
+
+	/**
+	 * Determines the transaction status based on the SOAP response object.
+	 *
+	 * Transaction Statuses for WebGains:
+	 * Paid - Confirmed
+	 * Cleared for Payment - Confirmed
+	 * Adjusted - Cleared for Payment - Confirmed
+	 * Adjusted - Awaiting Payment - Confirmed
+	 * Invoiced - Awaiting Payment - Confirmed
+	 * Delayed - Pending
+	 * Awaiting Invoice - Pending
+	 * In Recall Period - Pending
+	 * Adjusted - Awaiting Invoice - Pending
+	 * Cancelled - Rejected
+	 *
+	 * @param stdClass $transactionObject
+	 * @return string One of STATUS_CONFIRMED, STATUS_DECLINED, STATUS_PENDING, STATUS_PAID
+	 * @throws Exception
+	 */
+	protected function getTransactionStatus(stdClass $transactionObject) {
+
+		// The "original" values used previously don't seem to lead to reasonable results
+//		switch ($transactionObject->paymentStatus) {
+//			case 'cleared':
+//			case 'paid':
+//				return Oara_Utilities::STATUS_CONFIRMED;
+//			case 'notcleared':
+//				return Oara_Utilities::STATUS_PENDING;
+//			case 'cancelled':
+//				return Oara_Utilities::STATUS_DECLINED;
+//			default:
+//				throw new Exception('Error in the transaction status ' . $transactionObject->paymentStatus);
+//		}
+
+		// The "status" field gives us a better visibility
+		switch($transactionObject->status) {
+			case 'confirmed':
+				return Oara_Utilities::STATUS_CONFIRMED;
+			case 'delayed':
+				return Oara_Utilities::STATUS_PENDING;
+			case 'cancelled':
+				return Oara_Utilities::STATUS_DECLINED;
+			default:
+				throw new Exception('Unexpected transaction status '. $transactionObject->paymentStatus);
+		}
+
+	}
 
 		/**
 		 * Get the campaings identifiers and returns it in an array.
