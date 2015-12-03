@@ -211,10 +211,20 @@ class Oara_Network_Publisher_WebGains extends Oara_Network {
 				}
 				foreach ($transactionList as $transactionObject) {
 					if (in_array($transactionObject->programID, $merchantList)) {
-							
+
+						$transactionDate = new Zend_Date($transactionObject->date, "yyyy-MM-ddTHH:mm:ss");
+
+						// There is an issue with WebGains SOAP endpoint - it returns transactions
+						// which are out of the requested date range. We need to check whether
+						// the transaction date is actually in the requested boundaries, and skip
+						// it in case it is not.
+						if ($transactionDate > $dEndDate || $transactionDate < $dStartDate) {
+							// Transaction is not in the requested range
+							continue;
+						}
+
 						$transaction = array();
 						$transaction['merchantId'] = $transactionObject->programID;
-						$transactionDate = new Zend_Date($transactionObject->date, "yyyy-MM-ddTHH:mm:ss");
 						$transaction["date"] = $transactionDate->toString("yyyy-MM-dd HH:mm:ss");
 						$transaction['unique_id'] = $transactionObject->transactionID;
 						if ($transactionObject->clickRef != null) {
