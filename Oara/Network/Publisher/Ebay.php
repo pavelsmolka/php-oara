@@ -44,6 +44,10 @@ class Oara_Network_Publisher_Ebay extends Oara_Network {
 	public function __construct($credentials) {
 		$this->_credentials = $credentials;
 
+		// The credentials need to be URL-encoded, because they might be used as URL parameters
+		$this->_credentials['user'] = urlencode($this->_credentials['user']);
+		$this->_credentials['password'] = urlencode($this->_credentials['password']);
+
         $valuesLogin = array(
             new Oara_Curl_Parameter('login_username', $this->_credentials['user']),
             new Oara_Curl_Parameter('login_password', $this->_credentials['password']),
