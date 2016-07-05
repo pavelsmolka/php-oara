@@ -1,273 +1,219 @@
 <?php
-/**
- The goal of the Open Affiliate Report Aggregator (OARA) is to develop a set
- of PHP classes that can download affiliate reports from a number of affiliate networks, and store the data in a common format.
-
- Copyright (C) 2014  Fubra Limited
- This program is free software: you can redistribute it and/or modify
- it under the terms of the GNU Affero General Public License as published by
- the Free Software Foundation, either version 3 of the License, or any later version.
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU Affero General Public License for more details.
- You should have received a copy of the GNU Affero General Public License
- along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
- Contact
- ------------
- Fubra Limited <support@fubra.com> , +44 (0)1252 367 200
- **/
+namespace Oara\Network\Publisher;
+    /**
+     * The goal of the Open Affiliate Report Aggregator (OARA) is to develop a set
+     * of PHP classes that can download affiliate reports from a number of affiliate networks, and store the data in a common format.
+     *
+     * Copyright (C) 2016  Fubra Limited
+     * This program is free software: you can redistribute it and/or modify
+     * it under the terms of the GNU Affero General Public License as published by
+     * the Free Software Foundation, either version 3 of the License, or any later version.
+     * This program is distributed in the hope that it will be useful,
+     * but WITHOUT ANY WARRANTY; without even the implied warranty of
+     * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+     * GNU Affero General Public License for more details.
+     * You should have received a copy of the GNU Affero General Public License
+     * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+     *
+     * Contact
+     * ------------
+     * Fubra Limited <support@fubra.com> , +44 (0)1252 367 200
+     **/
 /**
  * Export Class
  *
  * @author     Carlos Morillo Merino
- * @category   Oara_Network_Publisher_Webepartners
+ * @category   Webepartners
  * @copyright  Fubra Limited
  * @version    Release: 01.00
  *
  */
-class Oara_Network_Publisher_WebePartners extends Oara_Network {
-	/**
-	 * Client
-	 * @var unknown_type
-	 */
-	private $_client = null;
-	/**
-	 * User
-	 * @var unknown_type
-	 */
-	private $_user = null;
-	/**
-	 * Pass
-	 * @var unknown_type
-	 */
-	private $_pass = null;
-	/**
-	 * Constructor and Login
-	 * @param $credentials
-	 * @return Oara_Network_Publisher_Daisycon
-	 */
-	public function __construct($credentials) {
-		$user = $credentials['user'];
-		$password = $credentials['password'];
+class WebePartners extends \Oara\Network
+{
+    private $_client = null;
+    private $_user = null;
+    private $_pass = null;
 
-		$url = "http://panel.webepartners.pl/Account/Login";
+    /**
+     * @param $credentials
+     * @throws Exception
+     */
+    public function login($credentials)
+    {
+        $user = $credentials['user'];
+        $password = $credentials['password'];
 
-		$dir = COOKIES_BASE_DIR . DIRECTORY_SEPARATOR . $credentials['cookiesDir'] . DIRECTORY_SEPARATOR . $credentials['cookiesSubDir'] . DIRECTORY_SEPARATOR;
+        $this->_client = new \Oara\Curl\Access($credentials);
 
-		$cookieName = $credentials["cookieName"];
-		$cookies = $dir.$cookieName.'_cookies.txt';
+        $url = "http://panel.webepartners.pl/Account/Login";
+        $urls = array();
+        $urls[] = new \Oara\Curl\Request($url, array());
+        $result = $this->_client->get($urls);
 
-		if ($handle = opendir($dir)) {
-			while (false !== ($file = readdir($handle))) {
-				if ($credentials['cookieName'] == strstr($file, '_', true)) {
-					unlink($dir.$file);
-					break;
-				}
-			}
-			closedir($handle);
-		}
+        $doc = new \DOMDocument();
+        @$doc->loadHTML($result[0]);
+        $xpath = new \DOMXPath($doc);
+        $results = $xpath->query('//input[@type="hidden"]');
+        foreach ($results as $result) {
+            $name = $result->attributes->getNamedItem("name")->nodeValue;
+            if ($name == "__RequestVerificationToken") {
+                $hiddenValue = $result->attributes->getNamedItem("value")->nodeValue;
+            }
+        }
+        if ($hiddenValue == null) {
+            throw new \Exception("hidden value not found");
+        }
 
-		$this->_client = array(
-		CURLOPT_USERAGENT => "Mozilla/5.0 (X11; Ubuntu; Linux i686; rv:22.0) Gecko/20100101 Firefox/22.0",
-		CURLOPT_RETURNTRANSFER => true,
-		CURLOPT_FAILONERROR => true,
-		CURLOPT_COOKIEJAR => $cookies,
-		CURLOPT_COOKIEFILE => $cookies,
-		CURLOPT_AUTOREFERER => true,
-		CURLOPT_SSL_VERIFYPEER => false,
-		CURLOPT_SSL_VERIFYHOST => false,
-		CURLOPT_HEADER => false,
-		);
+        $valuesLogin = array(
+            new \Oara\Curl\Parameter('__RequestVerificationToken', $hiddenValue),
+            new \Oara\Curl\Parameter('Login', $user),
+            new \Oara\Curl\Parameter('Password', $password),
+        );
 
-		//Init curl
-		$ch = curl_init();
-		$options = $this->_client;
-		$options[CURLOPT_URL] = $url;
-		$options[CURLOPT_FOLLOWLOCATION] = true;
-		curl_setopt_array($ch, $options);
-		$result = curl_exec($ch);
-		$err = curl_errno($ch);
-		$errmsg = curl_error($ch);
-		$info = curl_getinfo($ch);
+        $urls = array();
+        $urls[] = new \Oara\Curl\Request($url, $valuesLogin);
+        $this->_client->post($urls);
 
 
-		$dom = new Zend_Dom_Query($result);
-		$results = $dom->query('input[type="hidden"]');
-		$hiddenValue = null;
-		foreach ($results as $result){
-			$name = $result->attributes->getNamedItem("name")->nodeValue;
-			if ($name == "__RequestVerificationToken"){
-				$hiddenValue = $result->attributes->getNamedItem("value")->nodeValue;
-			}
-		}
-		if ($hiddenValue == null){
-			throw new Exception("hidden value not found");
-		}
 
-		$valuesLogin = array(
-		new Oara_Curl_Parameter('__RequestVerificationToken', $hiddenValue),
-		new Oara_Curl_Parameter('Login', $user),
-		new Oara_Curl_Parameter('Password', $password),
-		);
+        $urls = array();
+        $urls[] = new \Oara\Curl\Request("http://panel.webepartners.pl/AffiliateTools/Api", $valuesLogin);
+        $result = $this->_client->post($urls);
+        $doc = new \DOMDocument();
+        @$doc->loadHTML($result[0]);
+        $xpath = new \DOMXPath($doc);
+        $results = $xpath->query('//a[@href*="Authorize"]');
 
+        if ($results->length > 0) {
+            $item = $results->item(0);
+            $url = $item->attributes->getNamedItem("href")->nodeValue;
+            $parsedUrl = \parse_url($url);
+            \parse_str($parsedUrl["query"], $parameters);
+            $apiPass = $parameters["password"];
+            $this->_pass = $apiPass;
+        }
 
-		// Login form fields
-		$return = array();
-		foreach ($valuesLogin as $parameter) {
-			$return[] = $parameter->getKey().'='.urlencode($parameter->getValue());
-		}
-		$arg = implode('&', $return);
+    }
 
-		//Init curl
-		$ch = curl_init();
-		$options = $this->_client;
-		$options[CURLOPT_URL] = $url;
-		$options[CURLOPT_FOLLOWLOCATION] = true;
-		$options[CURLOPT_POSTFIELDS] = $arg;
-		$options[CURLOPT_POST] = true;
-		curl_setopt_array($ch, $options);
+    /**
+     * @return array
+     */
+    public function getNeededCredentials()
+    {
+        $credentials = array();
 
-		$result = curl_exec($ch);
-		$err = curl_errno($ch);
-		$errmsg = curl_error($ch);
-		$info = curl_getinfo($ch);
+        $parameter = array();
+        $parameter["description"] = "User Log in";
+        $parameter["required"] = true;
+        $parameter["name"] = "User";
+        $credentials["user"] = $parameter;
 
+        $parameter = array();
+        $parameter["description"] = "Password to Log in";
+        $parameter["required"] = true;
+        $parameter["name"] = "Password";
+        $credentials["password"] = $parameter;
 
-		//Init curl
-		$ch = curl_init();
-		$options = $this->_client;
-		$options[CURLOPT_URL] = "http://panel.webepartners.pl/AffiliateTools/Api";
-		$options[CURLOPT_FOLLOWLOCATION] = true;
-		$options[CURLOPT_POSTFIELDS] = $arg;
-		$options[CURLOPT_POST] = true;
-		curl_setopt_array($ch, $options);
+        return $credentials;
+    }
 
-		$result = curl_exec($ch);
-		$err = curl_errno($ch);
-		$errmsg = curl_error($ch);
-		$info = curl_getinfo($ch);
+    /**
+     * @return bool
+     */
+    public function checkConnection()
+    {
+        $connection = false;
+        $loginUrl = "http://api.webepartners.pl/wydawca/Authorize?login={$this->_user}&password={$this->_pass}";
 
-		$this->_user = urlencode($user);
+        $context = \stream_context_create(array(
+            'http' => array(
+                'header' => "Authorization: Basic " . \base64_encode("{$this->_user}:{$this->_pass}")
+            )
+        ));
+        $data = \file_get_contents($loginUrl, false, $context);
+        if ($data == true) {
+            $connection = true;
+        }
+        return $connection;
+    }
 
-		$dom = new Zend_Dom_Query($result);
-		$apiPass = null;
-		$results = $dom->query('a [href*="Authorize"]');
-		if (count($results) > 0){
-			$item = $results->current();
-			$url = $item->attributes->getNamedItem("href")->nodeValue;
-			$parsedUrl = parse_url($url);
-			parse_str($parsedUrl["query"], $parameters);
-			$apiPass = $parameters["password"];
-		}
+    /**
+     * @return array
+     */
+    public function getMerchantList()
+    {
+        $merchants = array();
 
-		$this->_pass = $apiPass;
+        $context = \stream_context_create(array(
+            'http' => array(
+                'header' => "Authorization: Basic " . \base64_encode("{$this->_user}:{$this->_pass}")
+            )
+        ));
 
+        $data = \file_get_contents("http://api.webepartners.pl/wydawca/Programs", false, $context);
+        $dataArray = \json_decode($data, true);
+        foreach ($dataArray as $merchantObject) {
+            $obj = array();
+            $obj['cid'] = $merchantObject["ProgramId"];
+            $obj['name'] = $merchantObject["ProgramName"];
+            $merchants[] = $obj;
+        }
+        return $merchants;
+    }
 
-	}
-	/**
-	 * Check the connection
-	 */
-	public function checkConnection() {
-		$connection = false;
-		$loginUrl = "http://api.webepartners.pl/wydawca/Authorize?login={$this->_user}&password={$this->_pass}";
+    /**
+     * @param null $merchantList
+     * @param \DateTime|null $dStartDate
+     * @param \DateTime|null $dEndDate
+     * @return array
+     */
+    public function getTransactionList($merchantList = null, \DateTime $dStartDate = null, \DateTime $dEndDate = null)
+    {
+        $merchantIdList = \Oara\Utilities::getMerchantIdMapFromMerchantList($merchantList);
 
-		$context = stream_context_create(array(
-		    'http' => array(
-		        'header'  => "Authorization: Basic " . base64_encode("{$this->_user}:{$this->_pass}")
-		)
-		));
-		$data = file_get_contents($loginUrl, false, $context);
-		if ($data == true) {
-			$connection = true;
-		}
-		return $connection;
-	}
-	/**
-	 * (non-PHPdoc)
-	 * @see library/Oara/Network/Oara_Network_Publisher_Interface#getMerchantList()
-	 */
-	public function getMerchantList() {
-		$merchants = array();
+        $context = \stream_context_create(array(
+            'http' => array(
+                'header' => "Authorization: Basic " . \base64_encode("{$this->_user}:{$this->_pass}")
+            )
+        ));
 
-		$context = stream_context_create(array(
-			    'http' => array(
-		        'header'  => "Authorization: Basic " . base64_encode("{$this->_user}:{$this->_pass}")
-		)
-		));
+        $from = \urlencode($dStartDate->format("Y-m-d H:i:s"));
 
-		$data = file_get_contents("http://api.webepartners.pl/wydawca/Programs", false, $context);
-		$dataArray = json_decode($data, true);
-		foreach ($dataArray as $merchantObject){
-			$obj = array();
-			$obj['cid'] = $merchantObject["ProgramId"];
-			$obj['name'] = $merchantObject["ProgramName"];
-			$merchants[] = $obj;
-		}
-		return $merchants;
-	}
+        $data = \file_get_contents("http://api.webepartners.pl/wydawca/Auctions?from=$from", false, $context);
+        $dataArray = \json_decode($data, true);
+        foreach ($dataArray as $transactionObject) {
 
-	/**
-	 * (non-PHPdoc)
-	 * @see library/Oara/Network/Oara_Network_Publisher_Interface#getTransactionList($aMerchantIds, $dStartDate, $dEndDate, $sTransactionStatus)
-	 */
-	public function getTransactionList($merchantList = null, Zend_Date $dStartDate = null, Zend_Date $dEndDate = null, $merchantMap = null) {
+            if (isset($merchantIdList[$transactionObject["ProgramId"]])) {
+                $transaction = Array();
+                $transaction['merchantId'] = $transactionObject["ProgramId"];
+                $transaction['date'] = $transactionObject["AuctionDate"];
+                if (isset($transactionObject["AuctionId"]) && $transactionObject["AuctionId"] != '') {
+                    $transaction['unique_id'] = $transactionObject["AuctionId"];
+                }
+                if (isset($transactionObject["subID"]) && $transactionObject["subID"] != '') {
+                    $transaction['custom_id'] = $transactionObject["subID"];
+                }
 
-		$context = stream_context_create(array(
-			    'http' => array(
-		        'header'  => "Authorization: Basic " . base64_encode("{$this->_user}:{$this->_pass}")
-		)
-		));
+                if ($transactionObject["AuctionStatusId"] == 3 || $transactionObject["AuctionStatusId"] == 4 || $transactionObject["AuctionStatusId"] == 5) {
+                    $transaction['status'] = \Oara\Utilities::STATUS_CONFIRMED;
+                } else
+                    if ($transactionObject["AuctionStatusId"] == 1) {
+                        $transaction['status'] = \Oara\Utilities::STATUS_PENDING;
+                    } else
+                        if ($transactionObject["AuctionStatusId"] == 2) {
+                            $transaction['status'] = \Oara\Utilities::STATUS_DECLINED;
+                        } else
+                            if ($transactionObject["AuctionStatusId"] == 6) {
+                                $transaction['status'] = \Oara\Utilities::STATUS_PAID;
+                            }
 
-		$from = urlencode($dStartDate->toString("yyyy-MM-dd HH:mm:ss"));
-
-		$data = file_get_contents("http://api.webepartners.pl/wydawca/Auctions?from=$from", false, $context);
-		$dataArray = json_decode($data, true);
-		foreach ($dataArray as $transactionObject){
-
-			if (in_array($transactionObject["ProgramId"], $merchantList)){
-				$transaction = Array();
-				$transaction['merchantId'] = $transactionObject["ProgramId"];
-				$transaction['date'] = $transactionObject["AuctionDate"];
-				if (isset($transactionObject["AuctionId"]) && $transactionObject["AuctionId"] != '') {
-					$transaction['unique_id'] = $transactionObject["AuctionId"];
-				}
-				if (isset($transactionObject["subID"]) && $transactionObject["subID"] != '') {
-					$transaction['custom_id'] = $transactionObject["subID"];
-				}
-
-				if ($transactionObject["AuctionStatusId"] == 3 || $transactionObject["AuctionStatusId"] == 4 || $transactionObject["AuctionStatusId"] == 5) {
-					$transaction['status'] = Oara_Utilities::STATUS_CONFIRMED;
-				} else
-				if ($transactionObject["AuctionStatusId"] == 1) {
-					$transaction['status'] = Oara_Utilities::STATUS_PENDING;
-				} else
-				if ($transactionObject["AuctionStatusId"] == 2) {
-					$transaction['status'] = Oara_Utilities::STATUS_DECLINED;
-				} else
-				if ($transactionObject["AuctionStatusId"] == 6) {
-					$transaction['status'] = Oara_Utilities::STATUS_PAID;
-				}
-
-				$transaction['amount'] = Oara_Utilities::parseDouble($transactionObject["OrderCost"]);
-
-				$transaction['commission'] = Oara_Utilities::parseDouble($transactionObject["Commission"]);
-				$totalTransactions[] = $transaction;
-			}
-		}
-		return $totalTransactions;
-	}
-
-	/**
-	 * (non-PHPdoc)
-	 * @see Oara/Network/Oara_Network_Publisher_Base#getPaymentHistory()
-	 */
-	public function getPaymentHistory() {
-		$paymentHistory = array();
-
-		return $paymentHistory;
-	}
+                $transaction['amount'] = \Oara\Utilities::parseDouble($transactionObject["OrderCost"]);
+                $transaction['commission'] = \Oara\Utilities::parseDouble($transactionObject["Commission"]);
+                $totalTransactions[] = $transaction;
+            }
+        }
+        return $totalTransactions;
+    }
 
 
 }

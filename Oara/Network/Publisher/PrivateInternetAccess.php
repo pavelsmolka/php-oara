@@ -1,93 +1,63 @@
 <?php
-/**
- * The goal of the Open Affiliate Report Aggregator (OARA) is to develop a set
- * of PHP classes that can download affiliate reports from a number of affiliate networks, and store the data in a common format.
- *
- * Copyright (C) 2014  Fubra Limited
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or any later version.
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
- * Contact
- * ------------
- * Fubra Limited <support@fubra.com> , +44 (0)1252 367 200
- **/
+namespace Oara\Network\Publisher;
+    /**
+     * The goal of the Open Affiliate Report Aggregator (OARA) is to develop a set
+     * of PHP classes that can download affiliate reports from a number of affiliate networks, and store the data in a common format.
+     *
+     * Copyright (C) 2016  Fubra Limited
+     * This program is free software: you can redistribute it and/or modify
+     * it under the terms of the GNU Affero General Public License as published by
+     * the Free Software Foundation, either version 3 of the License, or any later version.
+     * This program is distributed in the hope that it will be useful,
+     * but WITHOUT ANY WARRANTY; without even the implied warranty of
+     * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+     * GNU Affero General Public License for more details.
+     * You should have received a copy of the GNU Affero General Public License
+     * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+     *
+     * Contact
+     * ------------
+     * Fubra Limited <support@fubra.com> , +44 (0)1252 367 200
+     **/
 
 /**
  * Export Class
  *
  * @author     Carlos Morillo Merino
- * @category   Oara_Network_Publisher_Webepartners
+ * @category   Webepartners
  * @copyright  Fubra Limited
  * @version    Release: 01.00
  *
  */
-class Oara_Network_Publisher_PrivateInternetAccess extends Oara_Network
+class PrivateInternetAccess extends \Oara\Network
 {
-    /**
-     * Client
-     * @var unknown_type
-     */
+
     private $_client = null;
 
     /**
-     * Constructor and Login
      * @param $credentials
-     * @return Oara_Network_Publisher_Daisycon
+     * @throws Exception
      */
-    public function __construct($credentials)
+    public function login($credentials)
     {
         $user = $credentials['user'];
         $password = $credentials['password'];
+        $this->_client = new \Oara\Curl\Access($credentials);
+
 
         $url = "https://www.privateinternetaccess.com/affiliates/sign_in";
-
         $valuesLogin = array(
-            new Oara_Curl_Parameter('affiliate[email]', $user),
-            new Oara_Curl_Parameter('affiliate[password]', $password),
+            new \Oara\Curl\Parameter('affiliate[email]', $user),
+            new \Oara\Curl\Parameter('affiliate[password]', $password),
         );
+        $urls = array();
+        $urls[] = new \Oara\Curl\Request($url, $valuesLogin);
+        $exportReport = $this->_client->post($urls);
 
-        $this->_client = new Oara_Curl_Access($url, $valuesLogin, $credentials);
-
-
-        $dir = COOKIES_BASE_DIR . DIRECTORY_SEPARATOR . $credentials['cookiesDir'] . DIRECTORY_SEPARATOR . $credentials['cookiesSubDir'] . DIRECTORY_SEPARATOR;
-
-        $cookieName = $credentials["cookieName"];
-        $cookies = $dir . $cookieName . '_cookies.txt';
-
-        $defaultOptions = array(
-            CURLOPT_USERAGENT => "Mozilla/5.0 (X11; Ubuntu; Linux i686; rv:22.0) Gecko/20100101 Firefox/22.0",
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_FAILONERROR => true,
-            CURLOPT_COOKIEJAR => $cookies,
-            CURLOPT_COOKIEFILE => $cookies,
-            CURLOPT_AUTOREFERER => true,
-            CURLOPT_SSL_VERIFYPEER => false,
-            CURLOPT_SSL_VERIFYHOST => false,
-            CURLOPT_HEADER => false,
-            //CURLOPT_VERBOSE => true,
-        );
-
-        //Init curl
-        $ch = curl_init();
-        $options = $defaultOptions;
-        $options[CURLOPT_URL] = $url;
-        $options[CURLOPT_FOLLOWLOCATION] = true;
-        curl_setopt_array($ch, $options);
-        $result = curl_exec($ch);
-        $err = curl_errno($ch);
-        $errmsg = curl_error($ch);
-        $info = curl_getinfo($ch);
-
-
-        $dom = new Zend_Dom_Query($result);
-        $results = $dom->query('input[type="hidden"]');
+        $doc = new \DOMDocument();
+        @$doc->loadHTML($exportReport[0]);
+        $xpath = new \DOMXPath($doc);
+        $results = $xpath->query('//input[@type="hidden"]');
         $hiddenValue = null;
         foreach ($results as $result) {
             $name = $result->attributes->getNamedItem("name")->nodeValue;
@@ -96,40 +66,48 @@ class Oara_Network_Publisher_PrivateInternetAccess extends Oara_Network
             }
         }
         if ($hiddenValue == null) {
-            throw new Exception("hidden value not found");
+            throw new \Exception("hidden value not found");
         }
 
         $valuesLogin = array(
-            new Oara_Curl_Parameter('authenticity_token', $hiddenValue),
-            new Oara_Curl_Parameter('affiliate[email]', $user),
-            new Oara_Curl_Parameter('affiliate[password]', $password),
-            new Oara_Curl_Parameter('utf8', '&#x2713;'),
-            new Oara_Curl_Parameter('commit', 'Login'),
-            new Oara_Curl_Parameter('affiliate[remember_me]', '0'),
+            new \Oara\Curl\Parameter('authenticity_token', $hiddenValue),
+            new \Oara\Curl\Parameter('affiliate[email]', $user),
+            new \Oara\Curl\Parameter('affiliate[password]', $password),
+            new \Oara\Curl\Parameter('utf8', '&#x2713;'),
+            new \Oara\Curl\Parameter('commit', 'Login'),
+            new \Oara\Curl\Parameter('affiliate[remember_me]', '0'),
         );
 
-        // Login form fields
-        $return = array();
-        foreach ($valuesLogin as $parameter) {
-            $return[] = $parameter->getKey() . '=' . urlencode($parameter->getValue());
-        }
-        $arg = implode('&', $return);
-
-        //Init curl
-        $ch = curl_init();
-        $options = $defaultOptions;
-        $options[CURLOPT_URL] = $url;
-        $options[CURLOPT_FOLLOWLOCATION] = true;
-        $options[CURLOPT_POSTFIELDS] = $arg;
-        $options[CURLOPT_POST] = true;
-        curl_setopt_array($ch, $options);
-
-        $result = curl_exec($ch);
+        $urls = array();
+        $urls[] = new \Oara\Curl\Request($url, $valuesLogin);
+        $this->_client->post($urls);
 
     }
 
     /**
-     * Check the connection
+     * @return array
+     */
+    public function getNeededCredentials()
+    {
+        $credentials = array();
+
+        $parameter = array();
+        $parameter["description"] = "User Log in";
+        $parameter["required"] = true;
+        $parameter["name"] = "User";
+        $credentials["user"] = $parameter;
+
+        $parameter = array();
+        $parameter["description"] = "Password to Log in";
+        $parameter["required"] = true;
+        $parameter["name"] = "Password";
+        $credentials["password"] = $parameter;
+
+        return $credentials;
+    }
+
+    /**
+     * @return bool
      */
     public function checkConnection()
     {
@@ -137,20 +115,22 @@ class Oara_Network_Publisher_PrivateInternetAccess extends Oara_Network
         $connection = true;
         $valuesFormExport = array();
         $urls = array();
-        $urls[] = new Oara_Curl_Request('https://www.privateinternetaccess.com/affiliates/affiliate_dashboard', $valuesFormExport);
+        $urls[] = new \Oara\Curl\Request('https://www.privateinternetaccess.com/affiliates/affiliate_dashboard', $valuesFormExport);
         $exportReport = $this->_client->get($urls);
-        $dom = new Zend_Dom_Query($exportReport[0]);
-        $results = $dom->query('.login');
 
-        if (count($results) > 0) {
+        $doc = new \DOMDocument();
+        @$doc->loadHTML($exportReport[0]);
+        $xpath = new \DOMXPath($doc);
+        $results = $xpath->query('//*[contains(concat(" ", normalize-space(@class), " "), " login ")]');
+
+        if ($results->length > 0) {
             $connection = false;
         }
         return $connection;
     }
 
     /**
-     * (non-PHPdoc)
-     * @see library/Oara/Network/Oara_Network_Publisher_Interface#getMerchantList()
+     * @return array
      */
     public function getMerchantList()
     {
@@ -166,111 +146,47 @@ class Oara_Network_Publisher_PrivateInternetAccess extends Oara_Network
     }
 
     /**
-     * (non-PHPdoc)
-     * @see library/Oara/Network/Oara_Network_Publisher_Interface#getTransactionList($aMerchantIds, $dStartDate, $dEndDate, $sTransactionStatus)
+     * @param null $merchantList
+     * @param \DateTime|null $dStartDate
+     * @param \DateTime|null $dEndDate
+     * @return array
      */
-    public function getTransactionList($merchantList = null, Zend_Date $dStartDate = null, Zend_Date $dEndDate = null, $merchantMap = null)
+    public function getTransactionList($merchantList = null, \DateTime $dStartDate = null, \DateTime $dEndDate = null)
     {
         $totalTransactions = array();
-        $dateArray = Oara_Utilities::daysOfDifference($dStartDate, $dEndDate);
-        $dateArraySize = sizeof($dateArray);
+        $amountDays = $dStartDate->diff($dEndDate)->days;
+        $auxDate = clone $dStartDate;
+        for ($j = 0; $j < $amountDays; $j++) {
 
-
-        for ($j = 0; $j < $dateArraySize; $j++) {
             $valuesFormExport = array();
-            $valuesFormExport[] = new Oara_Curl_Parameter('date', $dateArray[$j]->toString("yyyy-MM-dd"));
-            $valuesFormExport[] = new Oara_Curl_Parameter('period', 'day');
+            $valuesFormExport[] = new \Oara\Curl\Parameter('utf', '✓');
+            $valuesFormExport[] = new \Oara\Curl\Parameter('start_date', $auxDate->format("d M Y"));
+            $valuesFormExport[] = new \Oara\Curl\Parameter('end_date', $auxDate->format("d M Y"));
 
             $urls = array();
-            $urls[] = new Oara_Curl_Request('https://www.privateinternetaccess.com/affiliates/affiliate_dashboard?', $valuesFormExport);
+            $urls[] = new \Oara\Curl\Request('https://www.privateinternetaccess.com/affiliates/affiliate_dashboard?', $valuesFormExport);
             $exportReport = $this->_client->get($urls);
-            $dom = new Zend_Dom_Query($exportReport[0]);
-            $results = $dom->query('.coupon_code table');
-            if (count($results) > 0) {
-                $exportData = self::htmlToCsv(self::DOMinnerHTML($results->current()));
 
-                for ($z = 1; $z < count($exportData) - 4; $z++) {
-                    $transactionLineArray = str_getcsv($exportData[$z], ";");
-                    $numberTransactions = (int)$transactionLineArray[1];
-                    if ($numberTransactions > 0) {
-                        $commission = preg_replace('/[^0-9\.,]/', "", $transactionLineArray[2]);
-                        $commission = ((double)$commission) / $numberTransactions;
-                        for ($y = 0; $y < $numberTransactions; $y++) {
-                            $transaction = Array();
-                            $transaction['merchantId'] = "1";
-                            $transaction['date'] = $dateArray[$j]->toString("yyyy-MM-dd HH:mm:ss");
-                            $transaction['status'] = Oara_Utilities::STATUS_CONFIRMED;
-                            $transaction['amount'] = $commission;
-                            $transaction['commission'] = $commission;
-                            $totalTransactions[] = $transaction;
-                        }
-                    }
-                }
+            $doc = new \DOMDocument();
+            @$doc->loadHTML($exportReport[0]);
+            $xpath = new \DOMXPath($doc);
+            $results = $xpath->query('//h4[contains(., " Grand total")]/following-sibling::table/tbody/tr/td');
+            if ($results->length > 0) {
+
+                $exportData = $results->item(1);
+                $commission = \Oara\Utilities::parseDouble(substr($exportData->nodeValue, 1));
+
+                $transaction = Array();
+                $transaction['merchantId'] = "1";
+                $transaction['date'] = $auxDate->format("Y-m-d H:i:s");
+                $transaction['status'] = \Oara\Utilities::STATUS_CONFIRMED;
+                $transaction['amount'] = $commission;
+                $transaction['commission'] = $commission;
+                $totalTransactions[] = $transaction;
             }
-
-
+            $auxDate->add(new \DateInterval('P1D'));
         }
-
         return $totalTransactions;
-    }
-
-    /**
-     *
-     * Function that Convert from a table to Csv
-     * @param unknown_type $html
-     */
-    private function htmlToCsv($html)
-    {
-        $html = str_replace(array("\t", "\r", "\n"), "", $html);
-        $csv = "";
-        $dom = new Zend_Dom_Query($html);
-        $results = $dom->query('tr');
-        $count = count($results); // get number of matches: 4
-        foreach ($results as $result) {
-            $tdList = $result->childNodes;
-            $tdNumber = $tdList->length;
-            if ($tdNumber > 0) {
-                for ($i = 0; $i < $tdNumber; $i++) {
-                    $value = $tdList->item($i)->nodeValue;
-                    if ($i != $tdNumber - 1) {
-                        $csv .= trim($value) . ";";
-                    } else {
-                        $csv .= trim($value);
-                    }
-                }
-                $csv .= "\n";
-            }
-        }
-        $exportData = str_getcsv($csv, "\n");
-        return $exportData;
-    }
-
-    /**
-     *
-     * Function that returns the innet HTML code
-     * @param unknown_type $element
-     */
-    private function DOMinnerHTML($element)
-    {
-        $innerHTML = "";
-        $children = $element->childNodes;
-        foreach ($children as $child) {
-            $tmp_dom = new DOMDocument();
-            $tmp_dom->appendChild($tmp_dom->importNode($child, true));
-            $innerHTML .= trim($tmp_dom->saveHTML());
-        }
-        return $innerHTML;
-    }
-
-    /**
-     * (non-PHPdoc)
-     * @see Oara/Network/Oara_Network_Publisher_Base#getPaymentHistory()
-     */
-    public function getPaymentHistory()
-    {
-        $paymentHistory = array();
-
-        return $paymentHistory;
     }
 
 

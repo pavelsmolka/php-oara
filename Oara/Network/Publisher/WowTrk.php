@@ -1,171 +1,182 @@
 <?php
-/**
- The goal of the Open Affiliate Report Aggregator (OARA) is to develop a set
- of PHP classes that can download affiliate reports from a number of affiliate networks, and store the data in a common format.
-
- Copyright (C) 2014  Fubra Limited
- This program is free software: you can redistribute it and/or modify
- it under the terms of the GNU Affero General Public License as published by
- the Free Software Foundation, either version 3 of the License, or any later version.
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU Affero General Public License for more details.
- You should have received a copy of the GNU Affero General Public License
- along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
- Contact
- ------------
- Fubra Limited <support@fubra.com> , +44 (0)1252 367 200
- **/
+namespace Oara\Network\Publisher;
+    /**
+     * The goal of the Open Affiliate Report Aggregator (OARA) is to develop a set
+     * of PHP classes that can download affiliate reports from a number of affiliate networks, and store the data in a common format.
+     *
+     * Copyright (C) 2016  Fubra Limited
+     * This program is free software: you can redistribute it and/or modify
+     * it under the terms of the GNU Affero General Public License as published by
+     * the Free Software Foundation, either version 3 of the License, or any later version.
+     * This program is distributed in the hope that it will be useful,
+     * but WITHOUT ANY WARRANTY; without even the implied warranty of
+     * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+     * GNU Affero General Public License for more details.
+     * You should have received a copy of the GNU Affero General Public License
+     * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+     *
+     * Contact
+     * ------------
+     * Fubra Limited <support@fubra.com> , +44 (0)1252 367 200
+     **/
 /**
  * Api Class
  *
  * @author     Carlos Morillo Merino
- * @category   Oara_Network_Publisher_Wow
+ * @category   Wow
  * @copyright  Fubra Limited
  * @version    Release: 01.00
  *
  */
-class Oara_Network_Publisher_WowTrk extends Oara_Network {
-	/**
-	 * Soap client.
-	 */
-	private $_apiClient = null;
-	/**
-	 * Export client.
-	 */
-	private $_exportClient = null;
+class WowTrk extends \Oara\Network
+{
 
-	/**
-	 * Credentials Export Parameters
-	 * @var array
-	 */
-	private $_credentialsParameters = array();
+    private $_exportClient = null;
+    private $_apiPassword = null;
 
-	/**
-	 * Api key.
-	 */
-	private $_apiPassword = null;
+    /**
+     * @param $credentials
+     */
+    public function login($credentials)
+    {
+        $user = $credentials['user'];
+        $password = $credentials['password'];
+        $this->_apiPassword = $credentials['apipassword'];
+        $this->_client = new \Oara\Curl\Access($credentials);
 
-	/**
-	 * page Size.
-	 */
-	private $_pageSize = 200;
 
-	/**
-	 * Constructor.
-	 * @param $wow
-	 * @return Oara_Network_Publisher_Aw_Api
-	 */
-	public function __construct($credentials) {
-		$user = $credentials['user'];
-		$password = $credentials['password'];
-		$this->_apiPassword = $credentials['apiPassword'];
+        //login through wow website
+        $loginUrl = 'http://p.wowtrk.com/';
+        $valuesLogin = array(new \Oara\Curl\Parameter('data[User][email]', $user),
+            new \Oara\Curl\Parameter('data[User][password]', $password),
+            new \Oara\Curl\Parameter('_method', 'POST')
+        );
 
-		//login through wow website
-		$loginUrl = 'http://p.wowtrk.com/';
-		$valuesLogin = array(new Oara_Curl_Parameter('data[User][email]', $user),
-			new Oara_Curl_Parameter('data[User][password]', $password),
-			new Oara_Curl_Parameter('_method', 'POST')
-		);
+        $urls = array();
+        $urls[] = new \Oara\Curl\Request($loginUrl, $valuesLogin);
+        $this->_client->post($urls);
+    }
 
-		$this->_exportClient = new Oara_Curl_Access($loginUrl, $valuesLogin, $credentials);
-	}
-	/**
-	 * Check the connection
-	 */
-	public function checkConnection() {
-		$connection = false;
-		try {
-			$connection = true;
-		} catch (Exception $e) {
+    /**
+     * @return array
+     */
+    public function getNeededCredentials()
+    {
+        $credentials = array();
 
-		}
-		return $connection;
-	}
-	/**
-	 * (non-PHPdoc)
-	 * @see library/Oara/Network/Oara_Network_Publisher_Base#getMerchantList()
-	 */
-	public function getMerchantList() {
-		$merchants = array();
+        $parameter = array();
+        $parameter["description"] = "User Log in";
+        $parameter["required"] = true;
+        $parameter["name"] = "User";
+        $credentials["user"] = $parameter;
 
-		$valuesFromExport = array();
-		$valuesFromExport[] = new Oara_Curl_Parameter('api_key', $this->_apiPassword);
-		$valuesFromExport[] = new Oara_Curl_Parameter('limit', 0);
-		
-		$urls = array();
-		$urls[] = new Oara_Curl_Request('http://p.wowtrk.com/offers/offers.xml?', $valuesFromExport);
-		$exportReport = $this->_exportClient->get($urls);
+        $parameter = array();
+        $parameter["description"] = "Password to Log in";
+        $parameter["required"] = true;
+        $parameter["name"] = "Password";
+        $credentials["password"] = $parameter;
 
-		$exportData = self::loadXml($exportReport[0]);
+        $parameter = array();
+        $parameter["description"] = "API Password ";
+        $parameter["required"] = true;
+        $parameter["name"] = "API";
+        $credentials["apipassword"] = $parameter;
 
-		foreach ($exportData->offer as $merchant) {
-			$obj = array();
-			$obj['cid'] = (int) $merchant->id;
-			$obj['name'] = (string) $merchant->name;
-			$obj['url'] = (string) $merchant->preview_url;
-			$merchants[] = $obj;
-		}
+        return $credentials;
+    }
 
-		return $merchants;
-	}
-	/**
-	 * Convert the string in xml object.
-	 * @param $exportReport
-	 * @return xml
-	 */
-	private function loadXml($exportReport = null) {
-		$xml = simplexml_load_string($exportReport, null, LIBXML_NOERROR | LIBXML_NOWARNING);
-		return $xml;
-	}
-	/**
-	 * (non-PHPdoc)
-	 * @see library/Oara/Network/Oara_Network_Publisher_Base#getTransactionList($merchantId,$dStartDate,$dEndDate)
-	 */
-	public function getTransactionList($merchantList = null, Zend_Date $dStartDate = null, Zend_Date $dEndDate = null, $merchantMap = null) {
-		$totalTransactions = array();
+    /**
+     * @return bool
+     */
+    public function checkConnection()
+    {
+        $connection = false;
+        try {
+            $connection = true;
+        } catch (\Exception $e) {
 
-		$valuesFromExport = array();
-		$valuesFromExport[] = new Oara_Curl_Parameter('api_key', $this->_apiPassword);
-		$valuesFromExport[] = new Oara_Curl_Parameter('start_date', $dStartDate->toString("yyyy-MM-dd"));
-		$valuesFromExport[] = new Oara_Curl_Parameter('end_date', $dEndDate->toString("yyyy-MM-dd"));
-		$valuesFromExport[] = new Oara_Curl_Parameter('filter[Stat.offer_id]', implode(",", $merchantList));
+        }
+        return $connection;
+    }
 
-		$urls = array();
-		$urls[] = new Oara_Curl_Request('http://p.wowtrk.com/stats/lead_report.xml?', $valuesFromExport);
-		$exportReport = $this->_exportClient->get($urls);
+    /**
+     * @return array
+     */
+    public function getMerchantList()
+    {
+        $merchants = array();
 
-		$exportData = self::loadXml($exportReport[0]);
+        $valuesFromExport = array();
+        $valuesFromExport[] = new \Oara\Curl\Parameter('api_key', $this->_apiPassword);
+        $valuesFromExport[] = new \Oara\Curl\Parameter('limit', 0);
 
-		foreach ($exportData->stats->stat as $transaction) {
-			if (isset($merchantMap[(string) $transaction->offer])) {
-				$obj = array();
-				$obj['merchantId'] = $merchantMap[(string) $transaction->offer];
-				$date = new Zend_Date((string) $transaction->date_time, "yyyy-MM-dd HH:mm:ss");
-				$obj['date'] = $date->toString("yyyy-MM-dd HH:mm:ss");
-				$obj['status'] = Oara_Utilities::STATUS_CONFIRMED;
-				$obj['customId'] = (string) $transaction->sub_id;
-				$obj['amount'] = Oara_Utilities::parseDouble((string) $transaction->payout);
-				$obj['commission'] = Oara_Utilities::parseDouble((string) $transaction->payout);
-				if ($obj['amount'] != 0 || $obj['commission'] != 0) {
-					$totalTransactions[] = $obj;
-				}
-			}
+        $urls = array();
+        $urls[] = new \Oara\Curl\Request('http://p.wowtrk.com/offers/offers.xml?', $valuesFromExport);
+        $exportReport = $this->_exportClient->get($urls);
 
-		}
-		return $totalTransactions;
-	}
+        $exportData = self::loadXml($exportReport[0]);
 
-	/**
-	 * (non-PHPdoc)
-	 * @see Oara/Network/Oara_Network_Publisher_Base#getPaymentHistory()
-	 */
-	public function getPaymentHistory() {
-		$paymentHistory = array();
-		
-		return $paymentHistory;
-	}
+        foreach ($exportData->offer as $merchant) {
+            $obj = array();
+            $obj['cid'] = (int)$merchant->id;
+            $obj['name'] = (string)$merchant->name;
+            $obj['url'] = (string)$merchant->preview_url;
+            $merchants[] = $obj;
+        }
 
+        return $merchants;
+    }
+
+    /**
+     * @param null $exportReport
+     * @return \SimpleXMLElement
+     */
+    private function loadXml($exportReport = null)
+    {
+        $xml = \simplexml_load_string($exportReport, null, LIBXML_NOERROR | LIBXML_NOWARNING);
+        return $xml;
+    }
+
+    /**
+     * @param null $merchantList
+     * @param \DateTime|null $dStartDate
+     * @param \DateTime|null $dEndDate
+     * @return array
+     */
+    public function getTransactionList($merchantList = null, \DateTime $dStartDate = null, \DateTime $dEndDate = null)
+    {
+        $totalTransactions = array();
+
+        $merchantIdList = \Oara\Utilities::getMerchantIdMapFromMerchantList($merchantList);
+        $merchantMap = \Oara\Utilities::getMerchantNameMapFromMerchantList($merchantList);
+
+        $valuesFromExport = array();
+        $valuesFromExport[] = new \Oara\Curl\Parameter('api_key', $this->_apiPassword);
+        $valuesFromExport[] = new \Oara\Curl\Parameter('start_date', $dStartDate->format("Y-m-d"));
+        $valuesFromExport[] = new \Oara\Curl\Parameter('end_date', $dEndDate->format("Y-m-d"));
+        $valuesFromExport[] = new \Oara\Curl\Parameter('filter[Stat.offer_id]', \implode(",", $merchantIdList));
+
+        $urls = array();
+        $urls[] = new \Oara\Curl\Request('http://p.wowtrk.com/stats/lead_report.xml?', $valuesFromExport);
+        $exportReport = $this->_exportClient->get($urls);
+
+        $exportData = self::loadXml($exportReport[0]);
+
+        foreach ($exportData->stats->stat as $transaction) {
+            if (isset($merchantMap[(string)$transaction->offer])) {
+                $obj = array();
+                $obj['merchantId'] = $merchantMap[(string)$transaction->offer];
+                $obj['date'] = (string)$transaction->date_time;
+                $obj['status'] = \Oara\Utilities::STATUS_CONFIRMED;
+                $obj['customId'] = (string)$transaction->sub_id;
+                $obj['amount'] = \Oara\Utilities::parseDouble((string)$transaction->payout);
+                $obj['commission'] = \Oara\Utilities::parseDouble((string)$transaction->payout);
+                if ($obj['amount'] != 0 || $obj['commission'] != 0) {
+                    $totalTransactions[] = $obj;
+                }
+            }
+
+        }
+        return $totalTransactions;
+    }
 }

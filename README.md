@@ -29,78 +29,103 @@ Networks Supported
 
 The list of supported networks for Publishers so far is:
 
+* AffiliNet
+* Affiliate4You
+* AffiliateFuture
+* AffiliateGateway
+* AffiliateGroove
+* AffiliateWindow
+* AffiliatesUnited
+* Afiliant
+* Afilio
+* Amazon
+* AutoEurope
+* AvantLink
+* BTGuard
+* Belboon
+* Bet365
+* Bol
+* CgtAffiliate
+* Chegg
+* ClickBank
+* ClixGalore
+* CommissionFactory
+* CommissionJunction
+* Daisycon
+* Demo
+* Dgm
+* Dianomi
+* DirectTrack
+* Ebay
+* Effiliation
+* Etrader
+* FashionTraffic
+* FoxTransfer
+* GetCake
+* Globelink
+* GoogleAndroidPublisher
+* Groupon
+* HasOffers
+* HavasMedia
+* HideMyAss
+* Invia
+* Itunes
+* Ladbrokers
+* LinkShare
+* Mall
+* MyPcBackUP
+* NetAffiliation
+* Omnicom
+* PaddyPower
+* PaidOnResults
+* ParkAndGo
+* PayMode
+* PepperJam
+* PerformanceHorizon
+* PostAffiliatePro
+* PrivateInternetAccess
+* Publicidees
+* PureVPN
+* RentalCars
+* SalesMedia
+* ShareASale
+* Shuttlefare
+* SilverTap
+* Simpl
+* Skimlinks
+* SkyParkSecure
+* SkyScanner
+* Smg
+* SportCoverDirect
+* Steak
+* Stream20
+* TerraVision
+* TradeDoubler
+* TradeTracker
+* Tyroo
+* Viagogo
+* VigLink
+* VpnAffiliates
+* WebGains
+* WebHostingHub
+* WebePartners
+* Wehkamp
+* WinnerAffiliates
+* WowTrk
+* Zanox
+* AffiliateGateway\AU
+* AffiliateGateway\UK
+* AvantLink\CA
+* LinkShare\AU
+* LinkShare\BR
+* LinkShare\CA
+* LinkShare\DE
+* LinkShare\EU
+* LinkShare\FR
+* LinkShare\LA
+* LinkShare\UK
+* LinkShare\US
 
-* [Affiliate Window](http://www.affiliatewindow.com/)
-* [Affiliate Future](http://www.affiliatefuture.com/)
-* [Trade Doubler](http://www.tradedoubler.com/)
-* [Google AdSense](https://www.google.com/accounts/ServiceLogin?service=adsense)
-* [AffiliNet](http://www.affili.net/en/Homepage.aspx)
-* [Buy At](http://users.buy.at/)
-* [CarTrawler](http://www.cartrawler.com/about/partners.php)
-* [Commission Junction](http://www.cj.com/)
-* [DGM](http://www.dgmpro.com/)
-* [LinkShare](http://www.linkshare.com/)
-* [Omg](http://uk.omgpm.com/)
-* [PaidOnResults](http://www.paidonresults.com/)
-* [SilverTap](http://www.silvertap.com/)
-* [TerraVision](http://booking.terravision.eu/areap.asp?lng=EN)
-* [Trade Tracker](http://www.tradetracker.com/gb/publisher/login)
-* [Travel Jigsaw](http://www.traveljigsawgroup.com/affiliates/AffiliateLogin.do)
-* [Web Gains](http://www.webgains.com/index.html)
-* [Wow Trk](http://www.wowtrk.com/)
-* [Zanox](http://www.zanox.com)
-* [Daisycon](http://www.daisycon.com)
-* [ClixGalore](http://www.clixgalore.com)
-* [Amazon UK](https://affiliate-program.amazon.co.uk/)
-* [Amazon US](https://affiliate-program.amazon.com/)
-* [Amazon DE](https://partnernet.amazon.de/)
-* [Amazon FR](https://partenaires.amazon.fr/)
-* [Amazon JP](https://affiliate.amazon.co.jp/)
-* [Amazon CA](https://associates.amazon.ca/)
-* [Amazon CN](https://associates.amazon.cn/)
-* [Amazon IT](https://programma-affiliazione.amazon.it/)
-* [Amazon ES](https://afiliados.amazon.es/)
-* [Ebay Partner Network](https://ebaypartnernetwork.com/files/hub/en-US/index.html)
-* [M4N](http://www.m4n.nl/)
-* [Affiliates United](https://www.affutd.com/)
-* [Bet365](https://www.bet365affiliates.com/ui/pages/affiliates/affiliates.aspx)
-* [Brand Conversions](https://mats.brandconversions.com/Login.aspx?ReturnUrl=/)
-* [Ladbrokers](https://www.ladbrokes.com)
-* [Skimlinks](https://skimlinks.com/)
-* [AutoEurope](https://www.auto-europe.co.uk)
-* [PayMode](http://www.paymode-x.com/)
-* [Effiliation](http://www.effiliation.com/)
-* [NetAffiliation](http://www.netaffiliation.com/)
-* [Publicidees](http://www.publicidees.es/)
-* [ClickBank](http://www.clickbank.com/index.html)
-* [Stream 20](http://www.stream20.com/)
-* [Google Checkout](http://checkout.google.com/sell)
-* [Direct Track](http://www.directtrack.com/)
-* [PepperJam Network / eBay Enterprise Affiliate Network](http://www.pepperjamnetwork.com)
-* [HideMyAss](http://www.hidemyass.com)
-* [PureVPN](http://www.purevpn.com)
-* [MyPcBackUp](http://affiliates.mypcbackup.com)
-* [BtGuard](https://affiliate.btguard.com)
-* [PaddyPartners](http://affiliates.paddypartners.com)
-* [WinnerAffiliates](https://www.winneraffiliates.com/)
-* [Google Android Publisher](https://play.google.com/store)
-* [iTunes Connect](https://itunesconnect.apple.com)
-* [Mall.cz](http://affiliate.mall.cz/pan/public/)
-* [PostAffiliatePro](http://www.postaffiliatepro.com/)
-* [Avantlink.ca](http://www.avantlink.ca)
-* [Skyscanner](http://www.skyscanneraffiliate.net/portal/en-GB/UK/Home/LogOn)
-* [SkyParkSecure](http://agents.skyparksecure.com)
-* [ParkAndGo](http://www.parkandgo.co.uk)
-* [RentalCars](http://www.rentalcars.com)
-* [CommissionFactory AU](http://www.commissionfactory.com.au/)
-* [HasOffers](http://www.hasoffers.com/)
-
-
-The list of supported networks for Advertisers so far is:
-
-
-* [Share a Sale](http://www.shareasale.com/)
-* [Commission Junction](http://www.cj.com/)
 
 System Requirements
 -------------------
@@ -131,11 +156,11 @@ for the different networks.
 	php composer.phar self-update
 	php composer.phar install
 
-	5. Credentials.ini.sample
+	5. test.php
 
-	In the example folder a "credentials.ini.sample" has been provided.
-	Please rename it to "credentials.ini" and follow the intructions
-	in order to fill your crendentials.
+	In the examples folder a "test.php" has been provided.
+	Instantiate a network (new \Oara\Network\Publisher\LinkShare\UK() for example), and set
+	the needed credentials to login.
 
 
 
@@ -167,24 +192,32 @@ When you think that your code is finished, send us a pull request and we will do
 We would like you to follow the structure provided.  If you want to add a network,
 please pay attention to the next rules:
 
-* Create a class in the Oara/Network folder with the name of the network. This class must implement the Oara_Network Interface
+* Create a class in the Oara/Network folder with the name of the network. This class must implement the \Oara\Network Interface
 
 * Implement the methods needed:
+    * login
+    * getNeededCredentials
 	* checkConnection
 	* getMerchantList
 	* getTransactionList
 	* getPaymentHistory
 	* paymentTransactions
 
-* Add the credentials to the credentials.ini.sample. (Please add also information about how to find your credentials)
-
-* Add the generic example to the examples folder.
-
 
 Network
 ------------
 
-The network classes must implement the Oara_Network interface, which includes these methods.
+The network classes must implement the \Oara\Network interface, which includes these methods.
+
+### login(array $credentials)
+Makes the login process with the credentials provided.
+
+* @param array $credentials - array with credentials to login
+
+### getNeededCredentials()
+Returns an array with the required parameters to login.
+
+return Array ( Array with required parameters)
 
 ### checkConnection()
 It checks if we are succesfully connected to the network
@@ -196,14 +229,14 @@ Gets the merchants joined for the network
 
 * return Array ( Array of Merchants )
 
-### getTransactionList(array $merchantList, Zend_Date $dStartDate, Zend_Date $dEndDate, array $merchantMap)
+### getTransactionList(array $merchantList, \DateTime $dStartDate, \DateTime $dEndDate)
 Gets the transactions for the network, from the "dStartDate" until "dEndDate" for the merchants provided
 
 * @param array $merchantList - array with the merchants unique id we want to retrieve the data from
 
-* @param Zend_Date $dStartDate - start date (included)
+* @param \DateTime $dStartDate - start date (included)
 
-* @param Zend_Date $dEndDate - end date (included)
+* @param \DateTime $dEndDate - end date (included)
 
 * @param array $merchantMap - array with the merchants indexed by name, only in case we can't get the merchant id in the transaction report, we may need to link it by name.
 
@@ -222,12 +255,14 @@ Gets the Transactions Id for a paymentId
 
 * @param array $merchantList - array with the merchants we want to retrieve the data from
 
-* @param Zend_Date $startDate - start date ,it may be useful to filter the data in some networks
+* @param \DateTime $startDate - start date ,it may be useful to filter the data in some networks
 
 * return Array ( Array of Transcation unique_id )
 
-Merchant
+Entities
 ------------
+
+### Merchant
 
 It's an array with the following keys:
 
@@ -239,8 +274,7 @@ It's an array with the following keys:
 
 * url - Merchant's url
 
-Transaction
-------------
+### Transaction
 
 It's an array with the following keys:
 
@@ -253,17 +287,16 @@ It's an array with the following keys:
 * commission (not null) - Transaction commission (double)
 
 * status (not null) - Four different statuses:
-	* Oara_Utilities::STATUS_CONFIRMED
-	* Oara_Utilities::STATUS_PENDING
-	* Oara_Utilities::STATUS_DECLINED
-	* Oara_Utilities::STATUS_PAID
+	* \Oara\Utilities::STATUS_CONFIRMED
+	* \Oara\Utilities::STATUS_PENDING
+	* \Oara\Utilities::STATUS_DECLINED
+	* \Oara\Utilities::STATUS_PAID
 
 * unique_id - Unique id for the transaction (string)
 * custom_id - Custom id (or sub id) for the transaction (string), custom param you put on your links to see the performance or who made the sale.
 
 
-Payment
-------------
+### Payment
 
 It's an array with the next keys:
 

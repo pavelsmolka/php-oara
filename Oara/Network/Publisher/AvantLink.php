@@ -1,203 +1,213 @@
 <?php
-/**
- The goal of the Open Affiliate Report Aggregator (OARA) is to develop a set
- of PHP classes that can download affiliate reports from a number of affiliate networks, and store the data in a common format.
-
- Copyright (C) 2014  Fubra Limited
- This program is free software: you can redistribute it and/or modify
- it under the terms of the GNU Affero General Public License as published by
- the Free Software Foundation, either version 3 of the License, or any later version.
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU Affero General Public License for more details.
- You should have received a copy of the GNU Affero General Public License
- along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
- Contact
- ------------
- Fubra Limited <support@fubra.com> , +44 (0)1252 367 200
- **/
+namespace Oara\Network\Publisher;
+    /**
+     * The goal of the Open Affiliate Report Aggregator (OARA) is to develop a set
+     * of PHP classes that can download affiliate reports from a number of affiliate networks, and store the data in a common format.
+     *
+     * Copyright (C) 2016  Fubra Limited
+     * This program is free software: you can redistribute it and/or modify
+     * it under the terms of the GNU Affero General Public License as published by
+     * the Free Software Foundation, either version 3 of the License, or any later version.
+     * This program is distributed in the hope that it will be useful,
+     * but WITHOUT ANY WARRANTY; without even the implied warranty of
+     * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+     * GNU Affero General Public License for more details.
+     * You should have received a copy of the GNU Affero General Public License
+     * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+     *
+     * Contact
+     * ------------
+     * Fubra Limited <support@fubra.com> , +44 (0)1252 367 200
+     **/
 /**
  * Export Class
  *
  * @author     Carlos Morillo Merino
- * @category   Oara_Network_Publisher_AvantLink
+ * @category   AvantLink
  * @copyright  Fubra Limited
  * @version    Release: 01.00
  *
  */
-class Oara_Network_Publisher_AvantLink extends Oara_Network {
-	
-	private $_domain = null;
-	private $_id = null;
-	private $_apikey = null;
-	
-	/**
-	 * Constructor and Login
-	 * @param $credentials
-	 * @return Oara_Network_Publisher_ShareASale
-	 */
-	public function __construct($credentials) {
+class AvantLink extends \Oara\Network
+{
 
-		$user = $credentials ['user'];
-		$password = $credentials ['password'];
-		// Choosing the Linkshare network
-		
-		if ($credentials ['network'] == 'ca') {
-			$this->_domain = "https://www.avantlink.ca";
-		}
-		
-		$valuesLogin = array (
-				new Oara_Curl_Parameter ( 'strLoginType', 'affiliate' ),
-				new Oara_Curl_Parameter ( 'cmdLogin', 'Login' ),
-				new Oara_Curl_Parameter ( 'loginre', '' ),
-				new Oara_Curl_Parameter ( 'strEmailAddress', $user ),
-				new Oara_Curl_Parameter ( 'strPassword', $password ),
-				new Oara_Curl_Parameter ( 'intScreenResWidth', '1920' ),
-				new Oara_Curl_Parameter ( 'intScreenResHeight', '1080' ) 
-		);
-		// Login to the Linkshare Application
-		$this->_client = new Oara_Curl_Access ( $this->_domain."/login.php", $valuesLogin, $credentials );
-		
-	}
-	/**
-	 * Check the connection
-	 */
-	public function checkConnection() {
-		$connection = false;
-			
-		$urls = array ();
-		$urls [] = new Oara_Curl_Request ( 'https://www.avantlink.ca/affiliate/view_edit_auth_key.php', array () );
-		$result = $this->_client->get ( $urls );
-		if (preg_match ( "/<p><strong>Affiliate ID:<\/strong> (.*)?<\/p>/", $result [0], $matches )) {
-			$this->_id = $matches[1];
-			if (preg_match ( "/<p><strong>API Authorization Key:<\/strong> (.*)?<\/p>/", $result [0], $matches )) {
-				$this->_apikey = $matches[1];
-				$connection = true;
-			}
-			
-		}
-		return $connection;
-	}
+    protected $_domain = null;
+    private $_id = null;
+    private $_apikey = null;
 
-	/**
-	 * (non-PHPdoc)
-	 * @see library/Oara/Network/Oara_Network_Publisher_Interface#getMerchantList()
-	 */
-	public function getMerchantList() {
-		
-		$merchants = array();
-		$params = array (
-				new Oara_Curl_Parameter ( 'cmdDownload', 'Download All Active Merchants' ),
-				new Oara_Curl_Parameter ( 'strRelationStatus', 'active' )
-		);
-		
-		$urls = array ();
-		$urls [] = new Oara_Curl_Request ( $this->_domain.'/affiliate/merchants.php',$params );
-		$result = $this->_client->post ( $urls );
-		
-		$folder = realpath ( dirname ( COOKIES_BASE_DIR ) ) . '/pdf/';
-		$my_file = $folder.mt_rand().'.xls';
-		
-		$handle = fopen($my_file, 'w') or die('Cannot open file:  '.$my_file);
-		$data = $result[0];
-		fwrite($handle, $data);
-		fclose($handle);
-			
-		$objReader = PHPExcel_IOFactory::createReader('Excel5');
-		$objReader->setReadDataOnly(true);
-			
-		$objPHPExcel = $objReader->load($my_file);
-		$objWorksheet = $objPHPExcel->getActiveSheet();
-			
-		$highestRow = $objWorksheet->getHighestRow();
-		$highestColumn = $objWorksheet->getHighestColumn();
-			
-		$highestColumnIndex = PHPExcel_Cell::columnIndexFromString($highestColumn);
-			
-		for ($row = 2; $row <= $highestRow; ++$row) {
-		
-			$obj = Array();
-			$obj['cid'] = $objWorksheet->getCellByColumnAndRow(0, $row)->getValue();
-			$obj['name'] = $objWorksheet->getCellByColumnAndRow(1, $row)->getValue();
-			$merchants[] = $obj;
-			 
-		}
-		unlink($my_file);
-		
-		return $merchants;
-	}
+    /**
+     * Constructor and Login
+     * @param $credentials
+     * @return ShareASale
+     */
+    public function login($credentials)
+    {
 
-	/**
-	 * (non-PHPdoc)
-	 * @see library/Oara/Network/Oara_Network_Publisher_Interface#getTransactionList($idMerchant, $dStartDate, $dEndDate)
-	 */
-	public function getTransactionList($merchantList = null, Zend_Date $dStartDate = null, Zend_Date $dEndDate = null, $merchantMap = null) {
-		$totalTransactions = array();
-		
-		
-		$affiliate_id = $this->_id;
-		$auth_key = $this->_apikey;
-		
-		$strUrl = 'https://www.avantlink.ca/api.php';
-		$strUrl .= "?affiliate_id=$affiliate_id";
-		$strUrl .= "&auth_key=$auth_key";
-		$strUrl .= "&module=AffiliateReport";
-		$strUrl .= "&output=" . urlencode('csv');
-		$strUrl .= "&report_id=8";
-		$strUrl .= "&date_begin=" . urlencode($dStartDate->toString("yyyy-MM-dd HH:mm:ss"));
-		$strUrl .= "&date_end=" . urlencode($dEndDate->toString("yyyy-MM-dd HH:mm:ss"));
-		$strUrl .= "&include_inactive_merchants=0";
-		$strUrl .= "&search_results_include_cpc=0";
-		
-		$returnResult = self::makeCall($strUrl);
-		$exportData = str_getcsv($returnResult, "\r\n");
-		$num = count($exportData);
-		for ($i = 1; $i < $num; $i++) {
-			$transactionExportArray = str_getcsv($exportData[$i], ",");
-			if (count($transactionExportArray) > 1 && in_array((int) $transactionExportArray[17], $merchantList)) {
-				$transaction = Array();
-				$merchantId = (int) $transactionExportArray[17];
-				$transaction['merchantId'] = $merchantId;
-				$transactionDate = new Zend_Date($transactionExportArray[11], 'MM-dd-yyyy HH:mm:ss');
-				$transaction['date'] = $transactionDate->toString("yyyy-MM-dd HH:mm:ss");
-				$transaction['unique_id'] = (int)$transactionExportArray[5];
+        $user = $credentials ['user'];
+        $password = $credentials ['password'];
+        $this->_client = new \Oara\Curl\Access ($credentials);
 
-				if ($transactionExportArray[4] != null) {
-					$transaction['custom_id'] = $transactionExportArray[4];
-				}
+        $valuesLogin = array(
+            new \Oara\Curl\Parameter ('strLoginType', 'affiliate'),
+            new \Oara\Curl\Parameter ('cmdLogin', 'Login'),
+            new \Oara\Curl\Parameter ('loginre', ''),
+            new \Oara\Curl\Parameter ('email', $user),
+            new \Oara\Curl\Parameter ('password', $password),
+            new \Oara\Curl\Parameter ('intScreenResWidth', '1920'),
+            new \Oara\Curl\Parameter ('intScreenResHeight', '1080')
+        );
+        $urls = array();
+        $urls [] = new \Oara\Curl\Request ("https://www.".$this->_domain . "/signin", $valuesLogin);
+        $this->_client->post($urls);
 
-				$transaction['status'] = Oara_Utilities::STATUS_CONFIRMED;
-				$transaction['amount'] = Oara_Utilities::parseDouble(preg_replace('/[^0-9\.,]/', "", $transactionExportArray[6]));
-				$transaction['commission'] = Oara_Utilities::parseDouble(preg_replace('/[^0-9\.,]/', "", $transactionExportArray[7]));
-				$totalTransactions[] = $transaction;
-			}
-		}
-		return $totalTransactions;
-	}
+    }
 
-	/**
-	 * (non-PHPdoc)
-	 * @see Oara/Network/Oara_Network_Publisher_Base#getPaymentHistory()
-	 */
-	public function getPaymentHistory() {
-		$paymentHistory = array();
-		
-		return $paymentHistory;
-	}
-	/**
-	 * 
-	 * Make the call for this API
-	 * @param string $actionVerb
-	 */
-	private function makeCall($strUrl){
-		
-		$ch = curl_init();
-		curl_setopt($ch, CURLOPT_URL, $strUrl);
-		curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
-		$returnResult = curl_exec($ch);
-		curl_close($ch);
-		return $returnResult;
-	}
+    /**
+     * @return array
+     */
+    public function getNeededCredentials()
+    {
+        $credentials = array();
+
+        $parameter = array();
+        $parameter["description"] = "User Log in";
+        $parameter["required"] = true;
+        $parameter["name"] = "User";
+        $credentials["user"] = $parameter;
+
+        $parameter = array();
+        $parameter["description"] = "Password to Log in";
+        $parameter["required"] = true;
+        $parameter["name"] = "Password";
+        $credentials["password"] = $parameter;
+
+        return $credentials;
+    }
+
+    /**
+     * Check the connection
+     */
+    public function checkConnection()
+    {
+        $connection = false;
+
+        $urls = array();
+        $urls [] = new \Oara\Curl\Request ("https://classic.".$this->_domain .'/affiliate/view_edit_auth_key.php', array());
+        $result = $this->_client->get($urls);
+        if (\preg_match("/<p><strong>Affiliate ID:<\/strong> (.*)?<\/p>/", $result [0], $matches)) {
+            $this->_id = $matches[1];
+            if (\preg_match("/<p><strong>API Authorization Key:<\/strong> (.*)?<\/p>/", $result [0], $matches)) {
+                $this->_apikey = $matches[1];
+                $connection = true;
+            }
+
+        }
+        return $connection;
+    }
+
+    /**
+     * @return array
+     */
+    public function getMerchantList()
+    {
+
+        $merchants = array();
+
+        $params = array(
+            new \Oara\Curl\Parameter ('cmdDownload', 'Download All Active Merchants'),
+            new \Oara\Curl\Parameter ('strRelationStatus', 'active')
+        );
+
+        $urls = array();
+        $urls [] = new \Oara\Curl\Request ("https://classic.".$this->_domain . '/affiliate/merchants.php', $params);
+        $result = $this->_client->post($urls);
+        $folder = \realpath(\dirname(COOKIES_BASE_DIR)) . '/pdf/';
+        $my_file = $folder . \mt_rand() . '.xls';
+
+        $handle = \fopen($my_file, 'w') or die('Cannot open file:  ' . $my_file);
+        $data = $result[0];
+        \fwrite($handle, $data);
+        \fclose($handle);
+
+        $objReader = \PHPExcel_IOFactory::createReader('Excel5');
+        $objReader->setReadDataOnly(true);
+        $objPHPExcel = $objReader->load($my_file);
+        $objWorksheet = $objPHPExcel->getActiveSheet();
+        $highestRow = $objWorksheet->getHighestRow();
+        for ($row = 2; $row <= $highestRow; ++$row) {
+            $obj = Array();
+            $obj['cid'] = $objWorksheet->getCellByColumnAndRow(0, $row)->getValue();
+            $obj['name'] = $objWorksheet->getCellByColumnAndRow(1, $row)->getValue();
+            $merchants[] = $obj;
+        }
+        unlink($my_file);
+
+        return $merchants;
+    }
+
+    /**
+     * @param null $merchantList
+     * @param \DateTime|null $dStartDate
+     * @param \DateTime|null $dEndDate
+     * @return array
+     */
+    public function getTransactionList($merchantList = null, \DateTime $dStartDate = null, \DateTime $dEndDate = null)
+    {
+        $totalTransactions = array();
+        $affiliate_id = $this->_id;
+        $auth_key = $this->_apikey;
+
+        $merchantIdList = \Oara\Utilities::getMerchantIdMapFromMerchantList($merchantList);
+
+        $strUrl = "https://classic.".$this->_domain .'/api.php';
+        $strUrl .= "?affiliate_id=$affiliate_id";
+        $strUrl .= "&auth_key=$auth_key";
+        $strUrl .= "&module=AffiliateReport";
+        $strUrl .= "&output=" . \urlencode('csv');
+        $strUrl .= "&report_id=8";
+        $strUrl .= "&date_begin=" . \urlencode($dStartDate->format("Y-m-d H:i:s"));
+        $strUrl .= "&date_end=" . \urlencode($dEndDate->format("Y-m-d H:i:s"));
+        $strUrl .= "&include_inactive_merchants=0";
+        $strUrl .= "&search_results_include_cpc=0";
+
+        $returnResult = self::makeCall($strUrl);
+        $exportData = \str_getcsv($returnResult, "\r\n");
+        $num = \count($exportData);
+        for ($i = 1; $i < $num; $i++) {
+            $transactionExportArray = \str_getcsv($exportData[$i], ",");
+            if (\count($transactionExportArray) > 1 && isset($merchantIdList[(int)$transactionExportArray[17]])  ) {
+                $transaction = Array();
+                $merchantId = (int)$transactionExportArray[17];
+                $transaction['merchantId'] = $merchantId;
+                $transactionDate = \DateTime::createFromFormat("m-d-Y H:i:s", $transactionExportArray[11]);
+                $transaction['date'] = $transactionDate->format("Y-m-d H:i:s");
+                $transaction['unique_id'] = (int)$transactionExportArray[5];
+
+                if ($transactionExportArray[4] != null) {
+                    $transaction['custom_id'] = $transactionExportArray[4];
+                }
+
+                $transaction['status'] = \Oara\Utilities::STATUS_CONFIRMED;
+                $transaction['amount'] = \Oara\Utilities::parseDouble($transactionExportArray[6]);
+                $transaction['commission'] = \Oara\Utilities::parseDouble($transactionExportArray[7]);
+                $totalTransactions[] = $transaction;
+            }
+        }
+        return $totalTransactions;
+    }
+
+    /**
+     * @param $strUrl
+     * @return mixed
+     */
+    private function makeCall($strUrl)
+    {
+
+        $ch = \curl_init();
+        \curl_setopt($ch, CURLOPT_URL, $strUrl);
+        \curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
+        $returnResult = \curl_exec($ch);
+        \curl_close($ch);
+        return $returnResult;
+    }
 }

@@ -3,7 +3,7 @@
  The goal of the Open Affiliate Report Aggregator (OARA) is to develop a set
  of PHP classes that can download affiliate reports from a number of affiliate networks, and store the data in a common format.
   
- Copyright (C) 2014  Fubra Limited
+ Copyright (C) 2016  Fubra Limited
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU Affero General Public License as published by
  the Free Software Foundation, either version 3 of the License, or any later version.
@@ -32,14 +32,4 @@ define('COOKIES_BASE_DIR', realpath ( dirname ( __FILE__ ) ) . DIRECTORY_SEPARAT
 
 //set up default timezone
 date_default_timezone_set('GMT');
-
 umask(0002);
-
-//Adding the credentials ini into the Zend Registry
-//Allow for external credentials for git deployment
-if (is_file(BI_PATH_BASE.DS.'examples/credentials.ini')) {
-	$config = new Zend_Config_Ini(BI_PATH_BASE.DS.'examples/credentials.ini', 'production');
-} else {
-	$config = new Zend_Config_Ini(BI_PATH_BASE.DS.'../credentials.ini', 'production');
-}
-Zend_Registry::getInstance()->set('credentialsIni', $config);

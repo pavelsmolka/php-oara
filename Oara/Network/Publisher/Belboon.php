@@ -1,190 +1,170 @@
 <?php
-/**
- The goal of the Open Affiliate Report Aggregator (OARA) is to develop a set
- of PHP classes that can download affiliate reports from a number of affiliate networks, and store the data in a common format.
-
- Copyright (C) 2014  Fubra Limited
- This program is free software: you can redistribute it and/or modify
- it under the terms of the GNU Affero General Public License as published by
- the Free Software Foundation, either version 3 of the License, or any later version.
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU Affero General Public License for more details.
- You should have received a copy of the GNU Affero General Public License
- along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
- Contact
- ------------
- Fubra Limited <support@fubra.com> , +44 (0)1252 367 200
- **/
+namespace Oara\Network\Publisher;
+    /**
+     * The goal of the Open Affiliate Report Aggregator (OARA) is to develop a set
+     * of PHP classes that can download affiliate reports from a number of affiliate networks, and store the data in a common format.
+     *
+     * Copyright (C) 2016  Fubra Limited
+     * This program is free software: you can redistribute it and/or modify
+     * it under the terms of the GNU Affero General Public License as published by
+     * the Free Software Foundation, either version 3 of the License, or any later version.
+     * This program is distributed in the hope that it will be useful,
+     * but WITHOUT ANY WARRANTY; without even the implied warranty of
+     * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+     * GNU Affero General Public License for more details.
+     * You should have received a copy of the GNU Affero General Public License
+     * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+     *
+     * Contact
+     * ------------
+     * Fubra Limited <support@fubra.com> , +44 (0)1252 367 200
+     **/
 /**
  * Api Class
  *
  * @author     Carlos Morillo Merino
- * @category   Oara_Network_Publisher_Belboon
+ * @category   Belboon
  * @copyright  Fubra Limited
  * @version    Release: 01.00
  *
  */
-class Oara_Network_Publisher_Belboon extends Oara_Network {
-	/**
-	 * Soap client.
-	 */
-	private $_client = null;
-	/**
-	 * Platform list.
-	 */
-	private $_platformList = null;
-	/*
-	 * User
-	 */
-	private $_user = null;
-	/*
-	 * User
-	 */
-	private $_password = null;
+class Belboon extends \Oara\Network
+{
 
-	/**
-	 * Constructor.
-	 * @param $affilinet
-	 * @return Oara_Network_Publisher_An_Api
-	 */
-	public function __construct($credentials) {
-		$this->_user = $credentials['user'];
-		$this->_password = $credentials['apiPassword'];
+    private $_client = null;
+    private $_platformList = null;
 
-	}
-	/**
-	 * Check the connection
-	 */
-	public function checkConnection() {
-		$connection = true;
-		self::Login();
-		return $connection;
-	}
-	/**
-	 * (non-PHPdoc)
-	 * @see library/Oara/Network/Oara_Network_Publisher_Base#getMerchantList()
-	 */
-	public function getMerchantList() {
-		$merchantList = array();
-		foreach ($this->_platformList as $platform){
-			$result = $this->_client->getPrograms($platform["id"], null, utf8_encode('PARTNERSHIP'), null, null,null, 0 );
-			foreach ($result->handler->programs as $merchant){
-				$obj = array();
-				$obj["name"] = $merchant["programname"];
-				$obj["cid"] = $merchant["programid"];
-				$obj["url"] = $merchant["advertiserurl"];
-				$merchantList[] = $obj;
-			}
+    /**
+     * @param $credentials
+     */
+    public function login($credentials)
+    {
+        $user = $credentials['user'];
+        $password = $credentials['apipassword'];
+
+        //Setting the client.
+
+        $oSmartFeed = new \SoapClient("http://smartfeeds.belboon.com/SmartFeedServices.php?wsdl");
+        $oSessionHash = $oSmartFeed->login($user, $password);
+
+        $this->_client = new \SoapClient('http://api.belboon.com/?wsdl', array('login' => $user, 'password' => $password, 'trace' => true));
+        $this->_client->getAccountInfo();
 
 
-		}
-			
+        if (!$oSessionHash->HasError) {
 
-		return $merchantList;
-	}
-	/**
-	 * (non-PHPdoc)
-	 * @see library/Oara/Network/Oara_Network_Publisher_Base#getTransactionList($merchantId,$dStartDate,$dEndDate)
-	 */
-	public function getTransactionList($merchantList = null, Zend_Date $dStartDate = null, Zend_Date $dEndDate = null, $merchantMap = null) {
-		$totalTransactions = array();
+            $sSessionHash = $oSessionHash->Records['sessionHash'];
 
-		$result = $this->_client->getEventList(null, null, null, null, null, $dStartDate->toString("YYYY-MM-dd"), $dEndDate->toString("YYYY-MM-dd"), null, null, null, null, 0);
+            $aResult = $oSmartFeed->getPlatforms($sSessionHash);
+            $platformList = array();
+            foreach ($aResult->Records as $record) {
+                if ($record['status'] == "active") {
+                    $platformList[] = $record;
+                }
+            }
+            $this->_platformList = $platformList;
+        }
+    }
 
+    /**
+     * @return array
+     */
+    public function getNeededCredentials()
+    {
+        $credentials = array();
 
-		foreach ($result->handler->events as $event) {
-			if (in_array($event["programid"],$merchantList)){
-				
-			
-				$transaction = Array();
-				$transaction['unique_id'] = $event["eventid"];
-				$transaction['merchantId'] = $event["programid"];
-				$transaction['date'] = $event["eventdate"];
+        $parameter = array();
+        $parameter["description"] = "User Log in";
+        $parameter["required"] = true;
+        $parameter["name"] = "User";
+        $credentials["user"] = $parameter;
 
-				if ($event["subid"] != null) {
-					$transaction['custom_id'] = $event["subid"];
-					if (preg_match("/subid1=/", $transaction['custom_id'])){
-						$transaction['custom_id'] = str_replace("subid1=", "", $transaction['custom_id']);
-					}
-				}
+        $parameter = array();
+        $parameter["description"] = "Api Password for Belboon";
+        $parameter["required"] = true;
+        $parameter["name"] = "Api Password";
+        $credentials["password"] = $parameter;
 
-				if ($event["eventstatus"] == 'APPROVED') {
-					$transaction['status'] = Oara_Utilities::STATUS_CONFIRMED;
-				} else
-					if ($event["eventstatus"] == 'PENDING') {
-						$transaction['status'] = Oara_Utilities::STATUS_PENDING;
-					} else
-						if ($event["eventstatus"] == 'REJECTED') {
-							$transaction['status'] = Oara_Utilities::STATUS_DECLINED;
-						}
+        return $credentials;
+    }
 
-				$transaction['amount'] = $event["netvalue"];
+    /**
+     * @return bool
+     */
+    public function checkConnection()
+    {
+        $connection = true;
+        return $connection;
+    }
 
-				$transaction['commission'] = $event["eventcommission"];
-				$totalTransactions[] = $transaction;
-			}
-		}
-
-		return $totalTransactions;
-	}
-	
-	/**
-	 * Log in the API and get the data.
-	 */
-	public function Login() {
-		//Setting the client.
-		
-		$oSmartFeed = new Zend_Soap_Client("http://smartfeeds.belboon.com/SmartFeedServices.php?wsdl");
-		
-		$oSessionHash = $oSmartFeed->login($this->_user, $this->_password);
-		
-		$this->_client = new SoapClient('http://api.belboon.com/?wsdl', array('login' => $this->_user, 'password' => $this->_password, 'trace' => true));
-		$result = $this->_client->getAccountInfo();
-		
-		
-
-		if(!$oSessionHash->HasError){
-
-			$sSessionHash = $oSessionHash->Records['sessionHash'];
-
-			$aResult = $oSmartFeed->getPlatforms($sSessionHash);
-			$platformList = array();
-			foreach ($aResult->Records as $record){
-				if ($record['status'] == "active"){
-					$platformList[] = $record;
-				}
-			}
-			$this->_platformList = $platformList;
-		}
+    /**
+     * @return array
+     */
+    public function getMerchantList()
+    {
+        $merchantList = array();
+        foreach ($this->_platformList as $platform) {
+            $result = $this->_client->getPrograms($platform["id"], null, \utf8_encode('PARTNERSHIP'), null, null, null, 0);
+            foreach ($result->handler->programs as $merchant) {
+                $obj = array();
+                $obj["name"] = $merchant["programname"];
+                $obj["cid"] = $merchant["programid"];
+                $obj["url"] = $merchant["advertiserurl"];
+                $merchantList[] = $obj;
+            }
+        }
 
 
-	}
-	/**
-	 * (non-PHPdoc)
-	 * @see Oara/Network/Oara_Network_Publisher_Base#getPaymentHistory()
-	 */
+        return $merchantList;
+    }
 
-	public function getPaymentHistory() {
-		$paymentHistory = array();
+    /**
+     * @param null $merchantList
+     * @param \DateTime|null $dStartDate
+     * @param \DateTime|null $dEndDate
+     * @return array
+     */
+    public function getTransactionList($merchantList = null, \DateTime $dStartDate = null, \DateTime $dEndDate = null)
+    {
+        $totalTransactions = array();
 
-		return $paymentHistory;
-	}
+        $merchantIdMap = \Oara\Utilities::getMerchantIdMapFromMerchantList($merchantList);
+
+        $result = $this->_client->getEventList(null, null, null, null, null, $dStartDate->format("Y-m-d"), $dEndDate->format("Y-m-d"), null, null, null, null, 0);
 
 
-	/**
-	 * Calculate the number of iterations needed
-	 * @param $rowAvailable
-	 * @param $rowsReturned
-	 */
-	private function calculeIterationNumber($rowAvailable, $rowsReturned) {
-		$iterationDouble = (double) ($rowAvailable / $rowsReturned);
-		$iterationInt = (int) ($rowAvailable / $rowsReturned);
-		if ($iterationDouble > $iterationInt) {
-			$iterationInt++;
-		}
-		return $iterationInt;
-	}
+        foreach ($result->handler->events as $event) {
+            if (isset($merchantIdMap[$event["programid"]])) {
+
+                $transaction = Array();
+                $transaction['unique_id'] = $event["eventid"];
+                $transaction['merchantId'] = $event["programid"];
+                $transaction['date'] = $event["eventdate"];
+
+                if ($event["subid"] != null) {
+                    $transaction['custom_id'] = $event["subid"];
+                    if (\preg_match("/subid1=/", $transaction['custom_id'])) {
+                        $transaction['custom_id'] = str_replace("subid1=", "", $transaction['custom_id']);
+                    }
+                }
+
+                if ($event["eventstatus"] == 'APPROVED') {
+                    $transaction['status'] = \Oara\Utilities::STATUS_CONFIRMED;
+                } else
+                    if ($event["eventstatus"] == 'PENDING') {
+                        $transaction['status'] = \Oara\Utilities::STATUS_PENDING;
+                    } else
+                        if ($event["eventstatus"] == 'REJECTED') {
+                            $transaction['status'] = \Oara\Utilities::STATUS_DECLINED;
+                        }
+
+                $transaction['amount'] = \Oara\Utilities::parseDouble($event["netvalue"]);
+                $transaction['commission'] = \Oara\Utilities::parseDouble($event["eventcommission"]);
+                $totalTransactions[] = $transaction;
+            }
+        }
+
+        return $totalTransactions;
+    }
+
 }
