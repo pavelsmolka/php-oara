@@ -351,7 +351,7 @@ class LinkShare extends \Oara\Network
                 $auxEndData = clone $auxStartDate;
                 $auxEndData = $auxEndData->add(new \DateInterval('P1Y'));
 
-                $url = "https://reportws.linksynergy.com/downloadreport.php?bdate=" . $auxStartDate->format("Ymd") . "&edate=" . $auxEndData->format("Ymd") . "&token=" . $site->secureToken . "&nid=" . $this->_nid . "&reportid=1";
+                $url = "https://reportws.linksynergy.com/downloadreport.php?bdate=" . $auxStartDate->format("Ymd") . "&edate=" . $auxEndData->format("Ymd") . "&token=" . $site->token . "&nid=" . $this->_nid . "&reportid=1";
                 $result = \file_get_contents($url);
                 if (\preg_match("/You cannot request/", $result)) {
                     throw new \Exception ("Reached the limit");
