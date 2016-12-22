@@ -245,15 +245,13 @@ class LinkShare extends \Oara\Network
                 curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
                 curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
                 curl_setopt($ch, CURLOPT_TIMEOUT, 50);
-                curl_exec($ch);
+                $result = curl_exec($ch);
                 $info = curl_getinfo($ch);
                 if ($info['http_code'] != 200) {
                     return $totalTransactions;
-                } else {
-                    $result = file_get_contents($url);
                 }
                 curl_close($ch);
-                
+
                 $url = "https://ran-reporting.rakutenmarketing.com/en/reports/signature-orders-report/filters?start_date=" . $dStartDate->format("Y-m-d") . "&end_date=" . $dEndDate->format("Y-m-d") . "&include_summary=N" . "&network=" . $this->_nid . "&tz=GMT&date_type=transaction&token=" . urlencode($site->token);
                 $ch = curl_init();
                 curl_setopt($ch, CURLOPT_URL, $url);
@@ -261,12 +259,10 @@ class LinkShare extends \Oara\Network
                 curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
                 curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
                 curl_setopt($ch, CURLOPT_TIMEOUT, 50);
-                curl_exec($ch);
+                $resultSignature = curl_exec($ch);
                 $info = curl_getinfo($ch);
                 if ($info['http_code'] != 200) {
                     return $totalTransactions;
-                } else {
-                    $resultSignature = file_get_contents($url);
                 }
                 curl_close($ch);
 
@@ -311,15 +307,7 @@ class LinkShare extends \Oara\Network
                         }
 
                         $transaction ['amount'] = $sales;
-
                         $transaction ['commission'] = \Oara\Utilities::parseDouble($transactionData [9]);
-
-                        if ($transaction ['commission'] < 0) {
-                            $transaction ['amount'] = 0;
-                            $transaction ['commission'] = 0;
-                            $transaction ['status'] = \Oara\Utilities::STATUS_DECLINED;
-                        }
-
                         $totalTransactions [] = $transaction;
                     }
                 }

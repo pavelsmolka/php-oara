@@ -112,7 +112,7 @@ class Amazon extends \Oara\Network
         $totalTransactions = array();
         $amountDays = $dStartDate->diff($dEndDate)->days;
         $auxDate = clone $dStartDate;
-        for ($j = 0; $j < $amountDays; $j++) {
+        for ($j = 0; $j <= $amountDays; $j++) {
             $date = $auxDate->format("Ymd");
 
             $url = "https://assoc-datafeeds-eu.amazon.com/datafeed/getReport?filename={$this->_credentials["user"]}-earnings-report-$date.tsv.gz";
@@ -145,8 +145,8 @@ class Amazon extends \Oara\Network
                         $transaction = Array();
                         $transaction['merchantId'] = 1;
                         $transaction['date'] = $auxDate->format("Y-m-d H:i:s");
-                        if ($transactionExportArray[2] != null) {
-                            $transaction['custom_id'] = $transactionExportArray[2];
+                        if ($transactionExportArray[9] != null) {
+                            $transaction['custom_id'] = $transactionExportArray[9];
                         }
 
                         $transaction['status'] = \Oara\Utilities::STATUS_CONFIRMED;

@@ -19,37 +19,50 @@ namespace Oara\Network\Publisher;
      * ------------
      * Fubra Limited <support@fubra.com> , +44 (0)1252 367 200
      **/
+
 /**
  * Export Class
  *
- * @author     Alejandro Muñoz Odero
- * @category   BTGuard
+ * @author     Carlos Morillo Merino
+ * @category   TotalVPN
  * @copyright  Fubra Limited
  * @version    Release: 01.00
  *
  */
-class BTGuard extends \Oara\Network
+class TotalVPN extends \Oara\Network
 {
+    private $_credentials = null;
     private $_client = null;
 
     /**
      * @param $credentials
+     * @throws \Exception
      */
     public function login($credentials)
     {
         $this->_credentials = $credentials;
-        $this->_client = new \Oara\Curl\Access($credentials);
+        $this->_client = new \Oara\Curl\Access($this->_credentials);
 
+        $loginUrl = 'http://affiliates.totalvpn.com/login';
+        $urls = array();
+        $urls[] = new \Oara\Curl\Request($loginUrl, array());
+        $exportReport = $this->_client->get($urls);
+        $doc = new \DOMDocument();
+        @$doc->loadHTML($exportReport[0]);
+        $xpath = new \DOMXPath($doc);
+        $hidden = $xpath->query('//form[@action="/login"]/descendant::input[@type="hidden"]');
         $valuesLogin = array(
-            new \Oara\Curl\Parameter('username', $this->_credentials['user']),
-            new \Oara\Curl\Parameter('password', $this->_credentials['password']),
+            new \Oara\Curl\Parameter('username', $credentials['user']),
+            new \Oara\Curl\Parameter('password', $credentials['password']),
         );
-        $loginUrl = 'https://affiliate.btguard.com/login';
+        foreach ($hidden as $values) {
+            $valuesLogin[] = new \Oara\Curl\Parameter($values->getAttribute("name"), $values->getAttribute("value"));
+        }
 
+        $loginUrl = 'http://affiliates.totalvpn.com/login';
         $urls = array();
         $urls[] = new \Oara\Curl\Request($loginUrl, $valuesLogin);
         $this->_client->post($urls);
-
     }
 
     /**
@@ -74,23 +87,22 @@ class BTGuard extends \Oara\Network
         return $credentials;
     }
 
-
     /**
-     * Check the connection
+     * @return bool
      */
     public function checkConnection()
     {
         //If not login properly the construct launch an exception
         $connection = true;
         $urls = array();
-        $urls[] = new \Oara\Curl\Request('https://affiliate.btguard.com/member', array());
+        $urls[] = new \Oara\Curl\Request('http://affiliates.totalvpn.com', array());
         $exportReport = $this->_client->get($urls);
 
         $doc = new \DOMDocument();
         @$doc->loadHTML($exportReport[0]);
         $xpath = new \DOMXPath($doc);
-        $tableList = $xpath->query('//*[contains(concat(" ", normalize-space(@id), " "), " login ")]');
-        if ($tableList->length > 0) {
+        $results = $xpath->query('//a[@href="/logout"]');
+        if ($results->length == 0) {
             $connection = false;
         }
         return $connection;
@@ -105,8 +117,8 @@ class BTGuard extends \Oara\Network
 
         $obj = array();
         $obj['cid'] = "1";
-        $obj['name'] = "BTGuard";
-        $obj['url'] = "https://affiliate.btguard.com/";
+        $obj['name'] = "TotalVPN";
+        $obj['url'] = "http://affiliates.totalvpn.com";
         $merchants[] = $obj;
 
         return $merchants;
@@ -120,53 +132,40 @@ class BTGuard extends \Oara\Network
      */
     public function getTransactionList($merchantList = null, \DateTime $dStartDate = null, \DateTime $dEndDate = null)
     {
+
         $totalTransactions = array();
 
 
-        $amountDays = $dStartDate->diff($dEndDate)->days;
-        $auxDate = clone $dStartDate;
+        $valuesFromExport = array();
+        $valuesFromExport[] = new \Oara\Curl\Parameter('dateStart', $dStartDate->format("Y-m-d"));
+        $valuesFromExport[] = new \Oara\Curl\Parameter('dateEnd', $dEndDate->format("Y-m-d"));
+        $valuesFromExport[] = new \Oara\Curl\Parameter('csv', '1');
+        $urls = array();
+        $urls[] = new \Oara\Curl\Request('http://affiliates.totalvpn.com/reporting/view/date?', $valuesFromExport);
 
-        for ($j = 0; $j <= $amountDays; $j++) {
-
-            $valuesFormExport = array();
-            $valuesFormExport[] = new \Oara\Curl\Parameter('date1', $auxDate->format("Y-m-d"));
-            $valuesFormExport[] = new \Oara\Curl\Parameter('date2', $auxDate->format("Y-m-d"));
-            $valuesFormExport[] = new \Oara\Curl\Parameter('prerange', '0');
-
-            $urls = array();
-            $urls[] = new \Oara\Curl\Request('https://affiliate.btguard.com/reports?', $valuesFormExport);
-            $exportReport = $this->_client->get($urls);
-
-            $doc = new \DOMDocument();
-            @$doc->loadHTML($exportReport[0]);
-            $xpath = new \DOMXPath($doc);
-            $results = $xpath->query('//table[@cellspacing="12"]');
-            if ($results->length > 0) {
-                $exportData = \Oara\Utilities::htmlToCsv(\Oara\Utilities::DOMinnerHTML($results->item(0)));
-
-                for ($z = 1; $z < \count($exportData); $z++) {
-                    $transactionLineArray = \str_getcsv($exportData[$z], ";");
-                    $numberTransactions = (int)$transactionLineArray[2];
-                    if ($numberTransactions != 0) {
-                        $commission = \Oara\Utilities::parseDouble($transactionLineArray[3]);
-                        $commission = ((double)$commission) / $numberTransactions;
-                        for ($y = 0; $y < $numberTransactions; $y++) {
-                            $transaction = Array();
-                            $transaction['merchantId'] = "1";
-                            $transaction['date'] = $auxDate->format("Y-m-d H:i:s");
-                            $transaction['status'] = \Oara\Utilities::STATUS_CONFIRMED;
-                            $transaction['amount'] = $commission;
-                            $transaction['commission'] = $commission;
-                            $totalTransactions[] = $transaction;
-                        }
-                    }
-                }
-            }
-
-            $auxDate->add(new \DateInterval('P1D'));
+        $exportReport = $this->_client->get($urls);
+        $exportData = \str_getcsv(\utf8_decode($exportReport[0]), "\n");
+        $num = \count($exportData);
+        $headerArray = \str_getcsv($exportData[0], ",");
+        $headerMap = array();
+        for ($j = 0; $j < \count($headerArray); $j++) {
+            $headerMap[$headerArray[$j]] = $j;
         }
+
+        for ($j = 1; $j < $num; $j++) {
+            $transactionExportArray = \str_getcsv($exportData[$j], ",");
+
+            $transaction = Array();
+            $transaction['merchantId'] = 1;
+            $transaction['date'] = $transactionExportArray[$headerMap["Date.Date"]]." 00:00:00";
+            $total = \Oara\Utilities::parseDouble($transactionExportArray[$headerMap["Commission.Commission"]]) - \Oara\Utilities::parseDouble($transactionExportArray[$headerMap["Commission.Reversed"]]);
+            $transaction['amount'] = $total;
+            $transaction['commission'] = $total;
+            $transaction['status'] = \Oara\Utilities::STATUS_CONFIRMED;
+            $totalTransactions[] = $transaction;
+        }
+
 
         return $totalTransactions;
     }
-
 }
