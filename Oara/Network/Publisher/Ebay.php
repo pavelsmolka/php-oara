@@ -48,10 +48,8 @@ class Ebay extends \Oara\Network
         $valuesLogin = array(
             new \Oara\Curl\Parameter('login_username', $this->_credentials['user']),
             new \Oara\Curl\Parameter('login_password', $this->_credentials['password']),
-            new \Oara\Curl\Parameter('submit_btn', 'GO'),
-            new \Oara\Curl\Parameter('hubpage', 'y')
         );
-        $loginUrl = 'https://ebaypartnernetwork.com/PublisherLogin?hubpage=y&lang=en-US?';
+		$loginUrl = 'https://epn.ebay.com/login';
 
         $urls = array();
         $urls[] = new \Oara\Curl\Request($loginUrl, $valuesLogin);
