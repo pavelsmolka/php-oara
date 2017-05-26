@@ -41,13 +41,14 @@ class Belboon extends \Oara\Network
     {
         $user = $credentials['user'];
         $password = $credentials['apipassword'];
+		$proxy = ($this->_proxy) ? $this->_proxy->asSoapOptions() : [];
 
         //Setting the client.
 
-        $oSmartFeed = new \SoapClient("http://smartfeeds.belboon.com/SmartFeedServices.php?wsdl");
+        $oSmartFeed = new \SoapClient("http://smartfeeds.belboon.com/SmartFeedServices.php?wsdl", $proxy);
         $oSessionHash = $oSmartFeed->login($user, $password);
 
-        $this->_client = new \SoapClient('http://api.belboon.com/?wsdl', array('login' => $user, 'password' => $password, 'trace' => true));
+        $this->_client = new \SoapClient('http://api.belboon.com/?wsdl', array('login' => $user, 'password' => $password, 'trace' => true) + $proxy);
         $this->_client->getAccountInfo();
 
 

@@ -51,11 +51,12 @@ class AffiliateWindow extends \Oara\Network
         ini_set('default_socket_timeout', '120');
         $accountid = $credentials['accountid'];
         $password = $credentials['apipassword'];
+		$proxy = ($this->_proxy) ? $this->_proxy->asSoapOptions() : [];
 
         $nameSpace = 'http://api.affiliatewindow.com/';
         $wsdlUrl = 'http://api.affiliatewindow.com/v6/AffiliateService?wsdl';
         //Setting the client.
-        $this->_apiClient = new \SoapClient($wsdlUrl, array('login' => $accountid, 'encoding' => 'UTF-8', 'password' => $password, 'compression' => SOAP_COMPRESSION_ACCEPT | SOAP_COMPRESSION_GZIP | SOAP_COMPRESSION_DEFLATE, 'soap_version' => SOAP_1_1));
+        $this->_apiClient = new \SoapClient($wsdlUrl, array('login' => $accountid, 'encoding' => 'UTF-8', 'password' => $password, 'compression' => SOAP_COMPRESSION_ACCEPT | SOAP_COMPRESSION_GZIP | SOAP_COMPRESSION_DEFLATE, 'soap_version' => SOAP_1_1) + $proxy);
         $soapHeader1 = new \SoapHeader($nameSpace, 'UserAuthentication', array('iId' => $accountid, 'sPassword' => $password, 'sType' => 'affiliate'), true, $nameSpace);
         $soapHeader2 = new \SoapHeader($nameSpace, 'getQuota', true, true, $nameSpace);
         $this->_apiClient->__setSoapHeaders(array($soapHeader1, $soapHeader2));

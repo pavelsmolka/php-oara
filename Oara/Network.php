@@ -30,6 +30,9 @@ namespace Oara;
  */
 class Network
 {
+	/** @var Proxy **/
+	protected $_proxy;
+	
     /**
      * @return array
      */
@@ -86,4 +89,11 @@ class Network
         $result = array();
         return $result;
     }
+    
+	/**
+	 * @param \Oara\Proxy $proxy
+	 */
+	public function setProxy(Proxy $proxy) {
+		$this->_proxy = $proxy;
+	}    
 }
