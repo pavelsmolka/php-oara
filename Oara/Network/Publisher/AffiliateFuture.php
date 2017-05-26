@@ -40,7 +40,7 @@ class AffiliateFuture extends \Oara\Network
     {
         $user = $credentials['user'];
         $password = $credentials['password'];
-        $this->_client = new \Oara\Curl\Access($credentials);
+        $this->_client = new \Oara\Curl\Access($credentials, $this->_proxies);
 
         $valuesLogin = array(
             new \Oara\Curl\Parameter('txtUsername', $user),

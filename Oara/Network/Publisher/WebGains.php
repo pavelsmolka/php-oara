@@ -43,8 +43,8 @@ class WebGains extends \Oara\Network
     {
 		$this->_user = $credentials['user'];
 		$this->_password = $credentials['password'];
-		$this->_client = new \Oara\Curl\Access($credentials);
-		$proxy = ($this->_proxy) ? $this->_proxy->asSoapOptions() : [];
+		$this->_client = new \Oara\Curl\Access($credentials, $this->_proxies);
+		$proxy = ($this->getProxy('http')) ? $this->getProxy('http')->asSoapOptions() : [];
 
 		$wsdlUrl = 'http://ws.webgains.com/aws.php';
 		//Setting the client.

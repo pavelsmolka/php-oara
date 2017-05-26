@@ -39,7 +39,7 @@ class FoxTransfer extends \Oara\Network
      */
     public function login($credentials)
     {
-        $this->_client = new \Oara\Curl\Access($credentials);
+        $this->_client = new \Oara\Curl\Access($credentials, $this->_proxies);
 
         $this->_credentials = $credentials;
 

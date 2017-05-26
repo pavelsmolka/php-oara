@@ -41,7 +41,7 @@ class Bol extends \Oara\Network
         $user = $credentials['user'];
         $password = $credentials['password'];
 
-        $this->_client = new \Oara\Curl\Access($credentials);
+        $this->_client = new \Oara\Curl\Access($credentials, $this->_proxies);
 
         $valuesLogin = array(
             new \Oara\Curl\Parameter('j_username', $user),
@@ -50,7 +50,7 @@ class Bol extends \Oara\Network
 
         $loginUrl = 'https://partnerprogramma.bol.com/partner/j_security_check';
         $urls = array();
-        $urls[] = new \Oara\Curl\Request($loginUrl, $valuesLogin);
+        $urls[] = new \Oara\Curl\Request($loginUrl, $valuesLogin, $this->getProxy('https'));
         $this->_client->post($urls);
 
     }
@@ -63,7 +63,7 @@ class Bol extends \Oara\Network
         //If not login properly the construct launch an exception
         $connection = false;
         $urls = array();
-        $urls[] = new \Oara\Curl\Request('https://partnerprogramma.bol.com/partner/index.do?', array());
+        $urls[] = new \Oara\Curl\Request('https://partnerprogramma.bol.com/partner/index.do?', array(), $this->getProxy('https'));
         $exportReport = $this->_client->get($urls);
 
         if (\preg_match('/partner\/logout\.do/', $exportReport[0], $match)) {
@@ -129,7 +129,7 @@ class Bol extends \Oara\Network
         $valuesFromExport[] = new \Oara\Curl\Parameter('dayEnd', $dEndDate->format("d"));
 
         $urls = array();
-        $urls[] = new \Oara\Curl\Request('https://partnerprogramma.bol.com/partner/s/excelReport/orders?', $valuesFromExport);
+        $urls[] = new \Oara\Curl\Request('https://partnerprogramma.bol.com/partner/s/excelReport/orders?', $valuesFromExport, $this->getProxy('https'));
         $exportReport = $this->_client->get($urls);
 
         $my_file = $folder . \mt_rand() . '.xlsx';

@@ -30,8 +30,8 @@ namespace Oara;
  */
 class Network
 {
-	/** @var Proxy **/
-	protected $_proxy;
+	/** @var Proxy[] **/
+	protected $_proxies;
 	
     /**
      * @return array
@@ -90,10 +90,18 @@ class Network
         return $result;
     }
     
+    /**
+     * @param \Oara\Proxy $proxy
+     * @param string $key
+     */
+    public function setProxy(Proxy $proxy, $key = 'http') {
+        $this->_proxies[$key] = $proxy;
+    }
+    
 	/**
-	 * @param \Oara\Proxy $proxy
+	 * @param \Oara\Proxy[] $proxies
 	 */
-	public function setProxy(Proxy $proxy) {
-		$this->_proxy = $proxy;
-	}    
+	public function setProxies(array $proxies) {
+		$this->_proxies = $proxies;
+	}
 }

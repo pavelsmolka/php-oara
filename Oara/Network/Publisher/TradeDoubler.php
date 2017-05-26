@@ -39,7 +39,7 @@ class TradeDoubler extends \Oara\Network
     {
 
         $this->_credentials = $credentials;
-        $this->_client = new \Oara\Curl\Access($credentials);
+        $this->_client = new \Oara\Curl\Access($credentials, $this->_proxies);
 
         $user = $this->_credentials['user'];
         $password = $this->_credentials['password'];

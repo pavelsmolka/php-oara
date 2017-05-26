@@ -46,7 +46,7 @@ class Dgm extends \Oara\Network
         // Reading the different parameters.
         $this->_user = $credentials ['user'];
         $this->_pass = $credentials ['password'];
-		$proxy = ($this->_proxy) ? $this->_proxy->asSoapOptions() : [];
+		$proxy = ($this->getProxy('http')) ? $this->getProxy('http')->asSoapOptions() : [];
 
         $wsdlUrl = 'http://webservices.dgperform.com/dgmpublisherwebservices.cfc?wsdl';
         // Setting the apiClient.

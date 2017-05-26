@@ -41,7 +41,7 @@ class Globelink extends \Oara\Network
     {
 
         $this->_credentials = $credentials;
-        $this->_client = new \Oara\Curl\Access($credentials);
+        $this->_client = new \Oara\Curl\Access($credentials, $this->_proxies);
 
 
         $user = $credentials['user'];

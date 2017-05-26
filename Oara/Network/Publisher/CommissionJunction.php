@@ -46,7 +46,7 @@ class CommissionJunction extends \Oara\Network
         $password = $credentials['password'];
         $this->_apiPassword = $credentials['apipassword'];
 
-        $this->_client = new \Oara\Curl\Access($credentials);
+        $this->_client = new \Oara\Curl\Access($credentials, $this->_proxies);
 
         $loginUrl = 'https://members.cj.com/member/foundation/memberlogin.do?';
         $valuesLogin = array(new \Oara\Curl\Parameter('uname', $user),

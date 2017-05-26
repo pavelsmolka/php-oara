@@ -36,7 +36,7 @@ class TradeTracker extends \Oara\Network
     {
         $user = $credentials['user'];
         $password = $credentials['apipassword'];
-		$proxy = ($this->_proxy) ? $this->_proxy->asSoapOptions() : [];
+		$proxy = ($this->getProxy('http')) ? $this->getProxy('http')->asSoapOptions() : [];
 
         $wsdlUrl = 'http://ws.tradetracker.com/soap/affiliate?wsdl';
         //Setting the client.

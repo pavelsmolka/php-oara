@@ -46,7 +46,7 @@ class Tyroo extends \Oara\Network
 
         $this->_username = $credentials['user'];
         $this->_password = $credentials['password'];
-        $this->_client = new \Oara\Curl\Access($credentials);
+        $this->_client = new \Oara\Curl\Access($credentials, $this->_proxies);
 
         $postdata = \http_build_query(
             array('class' => 'Logon',

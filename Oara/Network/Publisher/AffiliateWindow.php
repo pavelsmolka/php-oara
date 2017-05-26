@@ -51,7 +51,7 @@ class AffiliateWindow extends \Oara\Network
         ini_set('default_socket_timeout', '120');
         $accountid = $credentials['accountid'];
         $password = $credentials['apipassword'];
-		$proxy = ($this->_proxy) ? $this->_proxy->asSoapOptions() : [];
+		$proxy = ($this->getProxy('http')) ? $this->getProxy('http')->asSoapOptions() : [];
 
         $nameSpace = 'http://api.affiliatewindow.com/';
         $wsdlUrl = 'http://api.affiliatewindow.com/v6/AffiliateService?wsdl';

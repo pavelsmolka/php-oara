@@ -41,7 +41,7 @@ class Viagogo extends \Oara\Network
     {
         $user = $credentials ['user'];
         $password = $credentials ['password'];
-        $this->_client = new \Oara\Curl\Access($credentials);
+        $this->_client = new \Oara\Curl\Access($credentials, $this->_proxies);
 
 
         $loginUrl = 'https://www.viagogo.co.uk/secure/loginregister/login';

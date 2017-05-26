@@ -37,7 +37,7 @@ class Groupon extends \Oara\Network
      */
     public function login($credentials)
     {
-        $this->_client = new \Oara\Curl\Access($credentials);
+        $this->_client = new \Oara\Curl\Access($credentials, $this->_proxies);
         $options = array(
             CURLOPT_USERAGENT => "Mozilla/5.0 (X11; Ubuntu; Linux i686; rv:26.0) Gecko/20100101 Firefox/26.0",
             CURLOPT_RETURNTRANSFER => true,

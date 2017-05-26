@@ -34,4 +34,12 @@ class Proxy
         ];
     }
     
+    public function asCurlOptions() {
+        return [
+            CURLOPT_PROXY           => $this->host,
+            CURLOPT_PROXYPORT       => $this->port,
+            CURLOPT_PROXYUSERPWD    => (empty($this->username)) ? null : $this->username .':'. $this->password
+        ];
+    }
+    
 }
