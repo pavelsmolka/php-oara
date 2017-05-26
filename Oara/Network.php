@@ -103,5 +103,16 @@ class Network
 	 */
 	public function setProxies(array $proxies) {
 		$this->_proxies = $proxies;
-	}
+	} 
+    
+    /**
+     * @param string $key
+     * @return \Oara\Proxy|null
+     */
+    public function getProxy($key) {
+        if (isset($this->_proxies[$key])) {
+            return $this->_proxies[$key];
+        }
+        return null;
+    }
 }
