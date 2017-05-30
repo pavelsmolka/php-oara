@@ -133,6 +133,7 @@ class AffiliateWindow extends \Oara\Network
      */
     public function getTransactionList($merchantList = null, \DateTime $dStartDate = null, \DateTime $dEndDate = null)
     {
+
         $totalTransactions = array();
 
         $dStartDate = clone $dStartDate;
@@ -156,6 +157,10 @@ class AffiliateWindow extends \Oara\Network
         $params['iOffset'] = null;
 
         $params['iLimit'] = $this->_pageSize;
+
+        // Increase the SOAP timeout - otherwise the request below fails
+        ini_set('default_socket_timeout', 600);
+
         $transactionList = $this->_apiClient->getTransactionList($params);
         if (\sizeof($transactionList->getTransactionListReturn) > 0) {
             $iteration = self::getIterationNumber($transactionList->getTransactionListCountReturn->iRowsAvailable, $this->_pageSize);
