@@ -90,7 +90,7 @@ class AffiliNet extends \Oara\Network
     public function getMerchantList()
     {
         $merchantListResult = array();
-        $proxy = ($this->getProxy('http')) ? $this->getProxy('http')->asSoapOptions() : [];
+        $proxy = ($this->getProxy('https')) ? $this->getProxy('https')->asSoapOptions() : [];
         //Set the webservice
         $publisherProgramServiceUrl = 'https://api.affili.net/V2.0/PublisherProgram.svc?wsdl';
         $publisherProgramService = new \SoapClient($publisherProgramServiceUrl, array('compression' => SOAP_COMPRESSION_ACCEPT | SOAP_COMPRESSION_GZIP | SOAP_COMPRESSION_DEFLATE, 'soap_version' => SOAP_1_1) + $proxy);
@@ -134,7 +134,7 @@ class AffiliNet extends \Oara\Network
         $totalTransactions = array();
         $merchantIdList = \Oara\Utilities::getMerchantIdMapFromMerchantList($merchantList);
         $dEndDate->add(new \DateInterval('P1D'));
-        $proxy = ($this->getProxy('http')) ? $this->getProxy('http')->asSoapOptions() : [];
+        $proxy = ($this->getProxy('https')) ? $this->getProxy('https')->asSoapOptions() : [];
         
         $publisherStatisticsServiceUrl = 'https://api.affili.net/V2.0/PublisherStatistics.svc?wsdl';
         $publisherStatisticsService = new \SoapClient($publisherStatisticsServiceUrl, array('compression' => SOAP_COMPRESSION_ACCEPT | SOAP_COMPRESSION_GZIP | SOAP_COMPRESSION_DEFLATE, 'soap_version' => SOAP_1_1) + $proxy);
@@ -211,7 +211,7 @@ class AffiliNet extends \Oara\Network
             'StartDate' => \strtotime($auxStartDate->format("Y-m-d")),
             'EndDate' => \strtotime($auxEndDate->format("Y-m-d")),
         );
-        $proxy = ($this->getProxy('http')) ? $this->getProxy('http')->asSoapOptions() : [];
+        $proxy = ($this->getProxy('https')) ? $this->getProxy('https')->asSoapOptions() : [];
         
         $accountServiceUrl = 'https://api.affili.net/V2.0/AccountService.svc?wsdl';
         $accountService = new \SoapClient($accountServiceUrl, array('compression' => SOAP_COMPRESSION_ACCEPT | SOAP_COMPRESSION_GZIP | SOAP_COMPRESSION_DEFLATE, 'soap_version' => SOAP_1_1) + $proxy);
