@@ -166,6 +166,7 @@ class CommissionFactory extends \Oara\Network
         $rch = \curl_init();
         \curl_setopt($rch, CURLOPT_URL, $url);
         \curl_setopt_array($rch, $options);
+        $this->proxyCurl($rch);
         $response = \curl_exec($rch);
         \curl_close($rch);
         return \json_decode($response, true);

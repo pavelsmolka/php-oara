@@ -65,6 +65,7 @@ class Daisycon extends \Oara\Network
             \curl_setopt($ch, CURLOPT_URL, $url);
             \curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
             \curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            $this->proxyCurl($ch);
             // execute curl
             $response = \curl_exec($ch);
             $publisherList = \json_decode($response, true);
@@ -129,6 +130,7 @@ class Daisycon extends \Oara\Network
                 \curl_setopt($ch, CURLOPT_URL, $url);
                 \curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
                 \curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                $this->proxyCurl($ch);
                 // execute curl
                 $response = \curl_exec($ch);
                 $merchantList = \json_decode($response, true);
@@ -183,6 +185,7 @@ class Daisycon extends \Oara\Network
                 \curl_setopt($ch, CURLOPT_URL, $url);
                 \curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
                 \curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                $this->proxyCurl($ch);
                 // execute curl
                 $response = \curl_exec($ch);
                 $transactionList = \json_decode($response, true);

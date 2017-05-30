@@ -270,7 +270,9 @@ class Access
                 $ch = \curl_init();
                 $chId = ( int )$ch;
                 $curlResults [( string )$chId] = '';
+                $proxy = $this->determineProxy($request->getUrl());
                 $options = $this->_options;
+                $options += ($proxy) ? $proxy->asCurlOptions() : [];
                 $options [CURLOPT_URL] = $request->getUrl() . self::getPostFields($request->getParameters());
                 \curl_setopt_array($ch, $options);
                 \curl_multi_add_handle($mcurl, $ch);

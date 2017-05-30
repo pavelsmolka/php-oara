@@ -84,7 +84,7 @@ class Chegg extends \Oara\Network
             new \Oara\Curl\Parameter('ctl00%24ContentPlaceHolder1%24scSignup%24ddlReferral', 'Select'),
 
         );
-        $html = \file_get_contents("http://cheggaffiliateprogram.com/Welcome/LogInAndSignUp.aspx?FP=C&FR=1&S=4");
+        $html = \file_get_contents("http://cheggaffiliateprogram.com/Welcome/LogInAndSignUp.aspx?FP=C&FR=1&S=4", false, $this->proxyContext('http'));
 
         $doc = new \DOMDocument();
         @$doc->loadHTML($html);

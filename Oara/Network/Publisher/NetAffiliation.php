@@ -148,7 +148,7 @@ class NetAffiliation extends \Oara\Network
         $exportReport = $this->_client->get($urls);
 
         if (\preg_match ("/function genereCodeLogin\(\) { return '(.+)?'; }/", $exportReport[0], $match)){
-            $content = \file_get_contents("http://flux.netaffiliation.com/flux_prog.php?taff=".$match[1]);
+            $content = \file_get_contents("http://flux.netaffiliation.com/flux_prog.php?taff=".$match[1], false, $this->proxyContext('http'));
             $xml = @\simplexml_load_string($content, "SimpleXMLElement", \LIBXML_NOCDATA);
             $json = \json_encode($xml);
             $merchantArray = \json_decode($json,TRUE);

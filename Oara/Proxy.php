@@ -34,12 +34,31 @@ class Proxy
         ];
     }
     
+    /**
+     * @return array
+     */
     public function asCurlOptions() {
         return [
             CURLOPT_PROXY           => $this->host,
             CURLOPT_PROXYPORT       => $this->port,
             CURLOPT_PROXYUSERPWD    => (empty($this->username)) ? null : $this->username .':'. $this->password
         ];
+    }
+    
+    /**
+     * @return array
+     */
+    public function asContextOptions() {
+        $context = [
+            'http' => ['proxy' => $this->host.':'.$this->port]
+        ];
+        
+        if ($this->username) {
+            $auth = base64_encode($this->username.':'.$this->password);
+            $context['http']['header'] = 'Proxy-Authorization: Basic '.$auth;
+        }
+        
+        return $context;
     }
     
 }

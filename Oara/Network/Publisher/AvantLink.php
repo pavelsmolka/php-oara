@@ -209,6 +209,7 @@ class AvantLink extends \Oara\Network
         $ch = \curl_init();
         \curl_setopt($ch, CURLOPT_URL, $strUrl);
         \curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
+        $this->proxyCurl($ch);
         $returnResult = \curl_exec($ch);
         \curl_close($ch);
         return $returnResult;

@@ -75,14 +75,14 @@ class GoogleAndroidPublisher extends \Oara\Network
         $connection = false;
 
         $url = "http://affjet.dc.fubra.net/tools/gsutil/gs.php?bucket=" . \urlencode($this->_bucket) . "&type=ls";
-        $context = \stream_context_create(array(
+        $context = array(
             'http' => array(
                 'header' => "Authorization: Basic " . \base64_encode("{$this->_httpLogin}")
             )
-        ));
+        );
 
 
-        $return = \file_get_contents($url, false, $context);
+        $return = \file_get_contents($url, false, $this->proxyContext('http', $context));
         if (\preg_match("/ls works/", $return)) {
             $connection = true;
         }
@@ -120,13 +120,13 @@ class GoogleAndroidPublisher extends \Oara\Network
         $file = "{$this->_bucket}/sales/salesreport_" . $dStartDate->format("Ym") . ".zip";
         $url = "http://affjet.dc.fubra.net/tools/gsutil/gs.php?bucket=" . \urlencode($file) . "&type=cp";
 
-        $context = \stream_context_create(array(
+        $context = array(
             'http' => array(
                 'header' => "Authorization: Basic " . \base64_encode("{$this->_httpLogin}")
             )
-        ));
+        );
 
-        \file_put_contents($dirDestination . "/report.zip", \file_get_contents($url, false, $context));
+        \file_put_contents($dirDestination . "/report.zip", \file_get_contents($url, false, $this->proxyContext('http', $context)));
 
         $zip = new \ZipArchive;
         if ($zip->open($dirDestination . "/report.zip") === TRUE) {

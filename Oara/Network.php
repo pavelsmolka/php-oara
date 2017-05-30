@@ -115,4 +115,39 @@ class Network
         }
         return null;
     }
+    
+    /**
+     * @param resource $ch
+     */
+    public function proxyCurl($ch) {
+        
+        if (is_resource($ch) === false) {
+            return;
+        }
+        
+        $proxy = $this->getProxy(parse_url(\curl_getinfo($ch, CURLINFO_EFFECTIVE_URL), PHP_URL_SCHEME));
+        if ($proxy) {
+            $options = $proxy->asCurlOptions();
+            \curl_setopt($ch, CURLOPT_PROXY, $options[CURLOPT_PROXY]);
+            \curl_setopt($ch, CURLOPT_PROXYPORT, $options[CURLOPT_PROXYPORT]);
+            \curl_setopt($ch, CURLOPT_PROXYUSERPWD, $options[CURLOPT_PROXYUSERPWD]);
+        }
+    }
+    
+    /**
+     * @param string $scheme
+     * @param array $context
+     * @return null | resource
+     */
+    public function proxyContext($scheme, $context = []) {
+        $proxy = $this->getProxy($scheme);
+        if (!$proxy) {
+            if (empty($context)) {
+                return null;
+            } else {
+                return \stream_context_create($context);
+            }
+        }        
+        return \stream_context_create(array_merge_recursive($context, $proxy->asContextOptions()));
+    }
 }

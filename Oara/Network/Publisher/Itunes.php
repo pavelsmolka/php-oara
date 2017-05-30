@@ -49,7 +49,7 @@ class Itunes extends \Oara\Network
     {
         //If not login properly the construct launch an exception
         $connection = true;
-        $result = \file_get_contents("https://{$this->_pass}@itunes-api.performancehorizon.com/user/publisher.json");
+        $result = \file_get_contents("https://{$this->_pass}@itunes-api.performancehorizon.com/user/publisher.json", false, $this->proxyContext('https'));
         if ($result == false) {
             $connection = false;
         }
@@ -78,7 +78,7 @@ class Itunes extends \Oara\Network
     public function getMerchantList()
     {
         $merchants = Array();
-        $result = \file_get_contents("https://{$this->_pass}@itunes-api.performancehorizon.com/user/account.json");
+        $result = \file_get_contents("https://{$this->_pass}@itunes-api.performancehorizon.com/user/account.json", false, $this->proxyContext('https'));
         $publisherList = \json_decode($result, true);
         foreach ($publisherList["user_accounts"] as $publisher) {
             if (isset($publisher["publisher"])) {
@@ -89,7 +89,7 @@ class Itunes extends \Oara\Network
 
         foreach ($this->_publisherList as $id => $name) {
             $url = "https://{$this->_pass}@itunes-api.performancehorizon.com/user/publisher/$id/campaign/a.json";
-            $result = \file_get_contents($url);
+            $result = \file_get_contents($url, false, $this->proxyContext('https'));
             $merchantList = \json_decode($result, true);
             foreach ($merchantList["campaigns"] as $merchant) {
                 $merchant = $merchant["campaign"];
@@ -129,7 +129,7 @@ class Itunes extends \Oara\Network
                 $url .= "&end_date=" . \urlencode($dEndDate->format("Y-m-d H:i"));
                 $url .= "&offset=" . $offset;
 
-                $result = \file_get_contents($url);
+                $result = \file_get_contents($url, false, $this->proxyContext('https'));
                 $conversionList = \json_decode($result, true);
 
                 foreach ($conversionList["conversions"] as $conversion) {
@@ -185,7 +185,7 @@ class Itunes extends \Oara\Network
 
         foreach ($this->_publisherList as $publisherId => $publisherName) {
             $url = "https://{$this->_pass}@itunes-api.performancehorizon.com/user/publisher/$publisherId/selfbill.json?";
-            $result = \file_get_contents($url);
+            $result = \file_get_contents($url, false, $this->proxyContext('https'));
             $paymentList = \json_decode($result, true);
 
             foreach ($paymentList["selfbills"] as $selfbill) {

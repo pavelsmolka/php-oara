@@ -133,6 +133,7 @@ class CommissionJunction extends \Oara\Network
         curl_setopt($ch, CURLOPT_POST, FALSE);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
         curl_setopt($ch, CURLOPT_HTTPHEADER, array("Authorization: " . $this->_apiPassword));
+        $this->proxyCurl($ch);
         $curl_results = curl_exec($ch);
         curl_close($ch);
         return $curl_results;

@@ -78,6 +78,7 @@ class Amazon extends \Oara\Network
         \curl_setopt($curl, CURLOPT_FOLLOWLOCATION, true);
         \curl_setopt($curl, CURLOPT_HTTPAUTH, CURLAUTH_ANY);
         \curl_setopt($curl, CURLOPT_BINARYTRANSFER, true);
+        $this->proxyCurl($curl);        
         $output = \curl_exec($curl);
         if (\preg_match("/Error/", $output)) {
             $connection = false;
@@ -126,6 +127,7 @@ class Amazon extends \Oara\Network
             \curl_setopt($curl, CURLOPT_FOLLOWLOCATION, true);
             \curl_setopt($curl, CURLOPT_HTTPAUTH, CURLAUTH_ANY);
             \curl_setopt($curl, CURLOPT_BINARYTRANSFER, true);
+            $this->proxyCurl($curl);            
             $output = \curl_exec($curl);
             if ($output) {
                 $filename = \realpath(\dirname(COOKIES_BASE_DIR)) . "/pdf/{$this->_credentials["user"]}-earnings-report-$date.tsv.gz";
