@@ -8,6 +8,7 @@ class Proxy
     private $port;
     private $username;
     private $password;
+    private $usesSSL;
     
     /**
      * @param string $host
@@ -16,6 +17,7 @@ class Proxy
      * @param string $password
      */
     public function __construct($host, $port, $username, $password) {
+        $this->usesSSL = (in_array(parse_url($host, PHP_URL_SCHEME), ['https', 'ssl'])) ? true : false;
         $this->host = $host;
         $this->port = $port;
         $this->username = $username;
@@ -26,7 +28,23 @@ class Proxy
      * @return array
      */
     public function asSoapOptions() {
-        return [
+        
+        $options = [];
+        
+        if ($this->usesSSL) {
+            $context = stream_context_create( [
+                'http'=> [
+                    'proxy'=>'tcp://'.$this->host.':'.$this->port
+                ],
+                'ssl' => [
+                    'verify_peer' => false,
+                    'verify_peer_name' => false,
+                ]
+            ]);
+            $options['stream_context'] = $context;
+        }
+        
+        return $options + [
             'proxy_host' => $this->host,
             'proxy_port' => $this->port,
             'proxy_login'    => $this->username,
