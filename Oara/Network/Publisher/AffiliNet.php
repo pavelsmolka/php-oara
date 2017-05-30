@@ -133,7 +133,6 @@ class AffiliNet extends \Oara\Network
     {
         $totalTransactions = array();
         $merchantIdList = \Oara\Utilities::getMerchantIdMapFromMerchantList($merchantList);
-        $dEndDate->add(new \DateInterval('P1D'));
         $proxy = ($this->getProxy('https')) ? $this->getProxy('https')->asSoapOptions() : [];
         
         $publisherStatisticsServiceUrl = 'https://api.affili.net/V2.0/PublisherStatistics.svc?wsdl';
