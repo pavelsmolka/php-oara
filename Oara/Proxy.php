@@ -15,9 +15,10 @@ class Proxy
      * @param integer $port
      * @param string $username
      * @param string $password
+     * @param bool $ssl
      */
-    public function __construct($host, $port, $username, $password) {
-        $this->usesSSL = (in_array(parse_url($host, PHP_URL_SCHEME), ['https', 'ssl'])) ? true : false;
+    public function __construct($host, $port, $username, $password, $ssl = false) {
+        $this->usesSSL = $ssl;
         $this->host = $host;
         $this->port = $port;
         $this->username = $username;
