@@ -48,7 +48,7 @@ class Ebay extends \Oara\Network
 	public function login($credentials)
 	{
 		$this->_credentials = $credentials;
-		$this->_client = new \Oara\Curl\Access($credentials);
+		$this->_client = new \Oara\Curl\Access($credentials, $this->_proxies);
 
 		$valuesLogin = array(
 				new \Oara\Curl\Parameter('email', $this->_credentials['user']),

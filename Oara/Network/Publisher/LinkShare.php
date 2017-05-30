@@ -44,7 +44,7 @@ class LinkShare extends \Oara\Network
     {
         $user = $credentials ['user'];
         $password = $credentials ['password'];
-        $this->_client = new \Oara\Curl\Access ($credentials);
+        $this->_client = new \Oara\Curl\Access ($credentials, $this->_proxies);
 
         $loginUrl = 'https://login.linkshare.com/sso/login?service=' . \urlencode("http://cli.linksynergy.com/cli/publisher/home.php");
         $valuesLogin = array(
