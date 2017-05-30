@@ -40,7 +40,7 @@ class AffiliNet extends \Oara\Network
     {
         $user = $credentials['user'];
         $password = $credentials['apipassword'];
-        $proxy = ($this->getProxy('http')) ? $this->getProxy('http')->asSoapOptions() : [];
+        $proxy = ($this->getProxy('https')) ? $this->getProxy('https')->asSoapOptions() : [];
         
         //Setting the client.
         $this->_client = new \SoapClient('https://api.affili.net/V2.0/Logon.svc?wsdl', array('compression' => SOAP_COMPRESSION_ACCEPT | SOAP_COMPRESSION_GZIP | SOAP_COMPRESSION_DEFLATE, 'soap_version' => SOAP_1_1) + $proxy);
