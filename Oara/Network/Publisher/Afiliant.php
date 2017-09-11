@@ -46,7 +46,7 @@ class Afiliant extends \Oara\Network
         $user = $credentials['user'];
         $password = $credentials['password'];
 
-        $this->_client = new \Oara\Curl\Access($credentials);
+        $this->_client = new \Oara\Curl\Access($credentials, $this->_proxies);
 
         $loginUrl = 'https://ssl.afiliant.com/publisher/index.php?a=auth';
         $valuesLogin = array(new \Oara\Curl\Parameter('login', $user),

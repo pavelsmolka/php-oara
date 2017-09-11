@@ -42,7 +42,7 @@ class Affiliate4You extends \Oara\Network
     {
         $this->_user = $credentials['user'];
         $this->_pass = $credentials['apipassword'];
-        $this->_client = new \Oara\Curl\Access($credentials);
+        $this->_client = new \Oara\Curl\Access($credentials, $this->_proxies);
     }
 
     /**

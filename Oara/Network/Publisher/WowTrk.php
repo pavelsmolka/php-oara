@@ -42,7 +42,7 @@ class WowTrk extends \Oara\Network
         $user = $credentials['user'];
         $password = $credentials['password'];
         $this->_apiPassword = $credentials['apipassword'];
-        $this->_client = new \Oara\Curl\Access($credentials);
+        $this->_client = new \Oara\Curl\Access($credentials, $this->_proxies);
 
 
         //login through wow website

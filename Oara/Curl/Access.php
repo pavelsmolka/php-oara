@@ -51,12 +51,20 @@ class Access
     private $_cookiePath = null;
 
     /**
+     * Proxies set by key
+     * 
+     * @var Proxy[]
+     */
+    private $_proxies = [];
+    
+    /**
      * \Oara\Curl\Access constructor.
      * @param $url
      * @param array $valuesLogin
      * @param $credentials
+     * @param array $proxies
      */
-    public function __construct($credentials)
+    public function __construct($credentials, $proxies = [])
     {
         $this->createCookieDir($credentials);
         //Default Options Values;
@@ -75,6 +83,7 @@ class Access
             CURLOPT_VERBOSE => false,
             CURLOPT_FOLLOWLOCATION => true,
         );
+        $this->_proxies = $proxies;
     }
     /**
      * Creating the cookie directory
@@ -137,7 +146,9 @@ class Access
                 $ch = \curl_init();
                 $chId = ( int )$ch;
                 $curlResults [( string )$chId] = '';
+                $proxy = $this->determineProxy($request->getUrl());
                 $options = $this->_options;
+                $options += ($proxy) ? $proxy->asCurlOptions() : [];
                 $options [CURLOPT_URL] = $request->getUrl();
                 $options [CURLOPT_POST] = true;
                 // Post form fields
@@ -259,7 +270,9 @@ class Access
                 $ch = \curl_init();
                 $chId = ( int )$ch;
                 $curlResults [( string )$chId] = '';
+                $proxy = $this->determineProxy($request->getUrl());
                 $options = $this->_options;
+                $options += ($proxy) ? $proxy->asCurlOptions() : [];
                 $options [CURLOPT_URL] = $request->getUrl() . self::getPostFields($request->getParameters());
                 \curl_setopt_array($ch, $options);
                 \curl_multi_add_handle($mcurl, $ch);
@@ -358,4 +371,24 @@ class Access
     {
         return @\file_put_contents($this->_cookiePath, $data);
     }
+    
+    /**
+     * @param string $key
+     * @return \Oara\Proxy|null
+     */
+    public function getProxy($key) {
+        if (isset($this->_proxies[$key])) {
+            return $this->_proxies[$key];
+        }
+        return null;
+    }
+    
+    /**
+     * @param string $url
+     * @return \Oara\Proxy|null
+     */
+    public function determineProxy($url) {
+        $scheme = parse_url($url, PHP_URL_SCHEME);
+        return $this->getProxy($scheme);
+    }    
 }

@@ -45,7 +45,7 @@ class AffiliatesUnited extends \Oara\Network
         $user = $credentials['user'];
         $password = $credentials['password'];
 
-        $this->_client = new \Oara\Curl\Access($credentials);
+        $this->_client = new \Oara\Curl\Access($credentials, $this->_proxies);
 
         $loginUrl = 'https://affiliates.affutd.com/affiliates/Account/Login?aspxerrorpath=/affiliates/login.aspx#';
         $urls = array();

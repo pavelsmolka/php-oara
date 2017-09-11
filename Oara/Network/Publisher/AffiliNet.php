@@ -40,9 +40,10 @@ class AffiliNet extends \Oara\Network
     {
         $user = $credentials['user'];
         $password = $credentials['apipassword'];
-
+        $proxy = ($this->getProxy('https')) ? $this->getProxy('https')->asSoapOptions() : [];
+        
         //Setting the client.
-        $this->_client = new \SoapClient('https://api.affili.net/V2.0/Logon.svc?wsdl', array('compression' => SOAP_COMPRESSION_ACCEPT | SOAP_COMPRESSION_GZIP | SOAP_COMPRESSION_DEFLATE, 'soap_version' => SOAP_1_1));
+        $this->_client = new \SoapClient('https://api.affili.net/V2.0/Logon.svc?wsdl', array('compression' => SOAP_COMPRESSION_ACCEPT | SOAP_COMPRESSION_GZIP | SOAP_COMPRESSION_DEFLATE, 'soap_version' => SOAP_1_1) + $proxy);
         $this->_token = $this->_client->Logon(array(
             'Username' => $user,
             'Password' => $password,
@@ -89,9 +90,10 @@ class AffiliNet extends \Oara\Network
     public function getMerchantList()
     {
         $merchantListResult = array();
+        $proxy = ($this->getProxy('https')) ? $this->getProxy('https')->asSoapOptions() : [];
         //Set the webservice
         $publisherProgramServiceUrl = 'https://api.affili.net/V2.0/PublisherProgram.svc?wsdl';
-        $publisherProgramService = new \SoapClient($publisherProgramServiceUrl, array('compression' => SOAP_COMPRESSION_ACCEPT | SOAP_COMPRESSION_GZIP | SOAP_COMPRESSION_DEFLATE, 'soap_version' => SOAP_1_1));
+        $publisherProgramService = new \SoapClient($publisherProgramServiceUrl, array('compression' => SOAP_COMPRESSION_ACCEPT | SOAP_COMPRESSION_GZIP | SOAP_COMPRESSION_DEFLATE, 'soap_version' => SOAP_1_1) + $proxy);
         //Call the function
         $params = Array('Query' => '');
         $merchantList = self::affilinetCall('merchant', $publisherProgramService, $params);
@@ -131,9 +133,10 @@ class AffiliNet extends \Oara\Network
     {
         $totalTransactions = array();
         $merchantIdList = \Oara\Utilities::getMerchantIdMapFromMerchantList($merchantList);
-
+        $proxy = ($this->getProxy('https')) ? $this->getProxy('https')->asSoapOptions() : [];
+        
         $publisherStatisticsServiceUrl = 'https://api.affili.net/V2.0/PublisherStatistics.svc?wsdl';
-        $publisherStatisticsService = new \SoapClient($publisherStatisticsServiceUrl, array('compression' => SOAP_COMPRESSION_ACCEPT | SOAP_COMPRESSION_GZIP | SOAP_COMPRESSION_DEFLATE, 'soap_version' => SOAP_1_1));
+        $publisherStatisticsService = new \SoapClient($publisherStatisticsServiceUrl, array('compression' => SOAP_COMPRESSION_ACCEPT | SOAP_COMPRESSION_GZIP | SOAP_COMPRESSION_DEFLATE, 'soap_version' => SOAP_1_1) + $proxy);
         $iterationNumber = self::calculeIterationNumber(\count($merchantIdList), 100);
 
         for ($currentIteration = 0; $currentIteration < $iterationNumber; $currentIteration++) {
@@ -207,8 +210,10 @@ class AffiliNet extends \Oara\Network
             'StartDate' => \strtotime($auxStartDate->format("Y-m-d")),
             'EndDate' => \strtotime($auxEndDate->format("Y-m-d")),
         );
+        $proxy = ($this->getProxy('https')) ? $this->getProxy('https')->asSoapOptions() : [];
+        
         $accountServiceUrl = 'https://api.affili.net/V2.0/AccountService.svc?wsdl';
-        $accountService = new \SoapClient($accountServiceUrl, array('compression' => SOAP_COMPRESSION_ACCEPT | SOAP_COMPRESSION_GZIP | SOAP_COMPRESSION_DEFLATE, 'soap_version' => SOAP_1_1));
+        $accountService = new \SoapClient($accountServiceUrl, array('compression' => SOAP_COMPRESSION_ACCEPT | SOAP_COMPRESSION_GZIP | SOAP_COMPRESSION_DEFLATE, 'soap_version' => SOAP_1_1) + $proxy);
 
         $paymentList = self::affilinetCall('payment', $accountService, $params);
 

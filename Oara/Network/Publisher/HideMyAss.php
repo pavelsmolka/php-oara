@@ -41,7 +41,7 @@ class HideMyAss extends \Oara\Network
     public function login($credentials)
     {
         $this->_credentials = $credentials;
-        $this->_client = new \Oara\Curl\Access($this->_credentials);
+        $this->_client = new \Oara\Curl\Access($this->_credentials, $this->_proxies);
 
         $loginUrl = 'https://affiliate.hidemyass.com/users/login';
         $urls = array();

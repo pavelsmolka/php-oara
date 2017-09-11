@@ -46,7 +46,7 @@ class PureVPN extends \Oara\Network
             new \Oara\Curl\Parameter('username', $this->_credentials['user']),
             new \Oara\Curl\Parameter('password', $this->_credentials['password']),
         );
-        $this->_client = new \Oara\Curl\Access($credentials);
+        $this->_client = new \Oara\Curl\Access($credentials, $this->_proxies);
 
         $urls = array();
         $urls[] = new \Oara\Curl\Request("https://billing.purevpn.com/clientarea.php", array());

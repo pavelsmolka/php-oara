@@ -110,6 +110,8 @@ class GetCake extends \Oara\Network
         \curl_setopt($ch, CURLOPT_HEADER, false);
         // Return data after call is made
         \curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        // Proxy the connection
+        $this->proxyCurl($ch);
         // Execute the REST call
         $response = \curl_exec($ch);
         $xml = \simplexml_load_string($response);

@@ -30,6 +30,9 @@ namespace Oara;
  */
 class Network
 {
+	/** @var Proxy[] **/
+	protected $_proxies;
+	
     /**
      * @return array
      */
@@ -85,5 +88,66 @@ class Network
     {
         $result = array();
         return $result;
+    }
+    
+    /**
+     * @param \Oara\Proxy $proxy
+     * @param string $key
+     */
+    public function setProxy(Proxy $proxy, $key = 'http') {
+        $this->_proxies[$key] = $proxy;
+    }
+    
+	/**
+	 * @param \Oara\Proxy[] $proxies
+	 */
+	public function setProxies(array $proxies) {
+		$this->_proxies = $proxies;
+	} 
+    
+    /**
+     * @param string $key
+     * @return \Oara\Proxy|null
+     */
+    public function getProxy($key) {
+        if (isset($this->_proxies[$key])) {
+            return $this->_proxies[$key];
+        }
+        return null;
+    }
+    
+    /**
+     * @param resource $ch
+     */
+    public function proxyCurl($ch) {
+        
+        if (is_resource($ch) === false) {
+            return;
+        }
+        
+        $proxy = $this->getProxy(parse_url(\curl_getinfo($ch, CURLINFO_EFFECTIVE_URL), PHP_URL_SCHEME));
+        if ($proxy) {
+            $options = $proxy->asCurlOptions();
+            \curl_setopt($ch, CURLOPT_PROXY, $options[CURLOPT_PROXY]);
+            \curl_setopt($ch, CURLOPT_PROXYPORT, $options[CURLOPT_PROXYPORT]);
+            \curl_setopt($ch, CURLOPT_PROXYUSERPWD, $options[CURLOPT_PROXYUSERPWD]);
+        }
+    }
+    
+    /**
+     * @param string $scheme
+     * @param array $context
+     * @return null | resource
+     */
+    public function proxyContext($scheme, $context = []) {
+        $proxy = $this->getProxy($scheme);
+        if (!$proxy) {
+            if (empty($context)) {
+                return null;
+            } else {
+                return \stream_context_create($context);
+            }
+        }        
+        return \stream_context_create(array_merge_recursive($context, $proxy->asContextOptions()));
     }
 }

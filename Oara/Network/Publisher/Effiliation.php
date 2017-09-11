@@ -66,7 +66,7 @@ class Effiliation extends \Oara\Network
     {
         $connection = false;
 
-        $content = \file_get_contents('http://api.effiliation.com/apiv2/transaction.csv?key=' . $this->_credentials["apipassword"]);
+        $content = \file_get_contents('http://api.effiliation.com/apiv2/transaction.csv?key=' . $this->_credentials["apipassword"], false, $this->proxyContext('http'));
         if (!\preg_match("/bad credentials !/", $content, $matches)) {
             $connection = true;
         }
@@ -80,7 +80,7 @@ class Effiliation extends \Oara\Network
     {
         $merchants = array();
         $url = 'http://api.effiliation.com/apiv2/programs.xml?key=' . $this->_credentials["apipassword"] . "&filter=active";
-        $content = @\file_get_contents($url);
+        $content = @\file_get_contents($url, false, $this->proxyContext('http'));
         $xml = \simplexml_load_string($content, null, LIBXML_NOERROR | LIBXML_NOWARNING);
         foreach ($xml->program as $merchant) {
             $obj = array();
@@ -105,7 +105,7 @@ class Effiliation extends \Oara\Network
         $merchantIdList = \Oara\Utilities::getMerchantIdMapFromMerchantList($merchantList);
 
         $url = 'http://api.effiliation.com/apiv2/transaction.csv?key=' . $this->_credentials["apipassword"] . '&start=' . $dStartDate->format("d/m/Y") . '&end=' . $dEndDate->format("d/m/Y") . '&type=date';
-        $content = \utf8_encode(\file_get_contents($url));
+        $content = \utf8_encode(\file_get_contents($url, false, $this->proxyContext('http')));
         $exportData = \str_getcsv($content, "\n");
         $num = \count($exportData);
         for ($i = 1; $i < $num; $i++) {

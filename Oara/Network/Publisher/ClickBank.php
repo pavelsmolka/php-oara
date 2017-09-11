@@ -167,7 +167,7 @@ class ClickBank extends \Oara\Network
             \curl_setopt($ch, CURLOPT_URL, $xmlLocation);
             \curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
             \curl_setopt($ch, CURLOPT_HTTPHEADER, array("Page: $page", "Accept: application/xml", "Authorization: " . $this->_dev . ":" . $this->_api));
-
+            $this->proxyCurl($ch);
             $dataArray[] = \curl_exec($ch);
             $httpCode = \curl_getinfo($ch, CURLINFO_HTTP_CODE);
             if ($httpCode != 200 && $httpCode != 206) {

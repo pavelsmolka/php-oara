@@ -44,7 +44,8 @@ class WebGains extends \Oara\Network
 	{
 		$this->_user = $credentials['user'];
 		$this->_password = $credentials['password'];
-		$this->_client = new \Oara\Curl\Access($credentials);
+		$this->_client = new \Oara\Curl\Access($credentials, $this->_proxies);
+        $proxy = ($this->getProxy('http')) ? $this->getProxy('http')->asSoapOptions() : [];
 
 		$wsdlUrl = 'http://ws.webgains.com/aws.php';
 		//Setting the client.
@@ -52,7 +53,7 @@ class WebGains extends \Oara\Network
 				'encoding' => 'UTF-8',
 				'password' => $this->_password,
 				'compression' => SOAP_COMPRESSION_ACCEPT | SOAP_COMPRESSION_GZIP | SOAP_COMPRESSION_DEFLATE,
-				'soap_version' => SOAP_1_1));
+				'soap_version' => SOAP_1_1) + $proxy);
 
 		$serverArray = array();
 		$serverArray["uk"] = 'www.webgains.com';

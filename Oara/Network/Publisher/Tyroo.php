@@ -46,7 +46,7 @@ class Tyroo extends \Oara\Network
 
         $this->_username = $credentials['user'];
         $this->_password = $credentials['password'];
-        $this->_client = new \Oara\Curl\Access($credentials);
+        $this->_client = new \Oara\Curl\Access($credentials, $this->_proxies);
 
         $postdata = \http_build_query(
             array('class' => 'Logon',
@@ -57,8 +57,7 @@ class Tyroo extends \Oara\Network
         $opts = array('http' => array('method' => 'POST',
             'header' => 'Content-type: application/x-www-form-urlencoded',
             'content' => $postdata));
-        $context = \stream_context_create($opts);
-        $result = \unserialize(file_get_contents('http://www.tyroocentral.com/www/api/v2/xmlrpc/APICall.php', false, $context));
+        $result = \unserialize(file_get_contents('http://www.tyroocentral.com/www/api/v2/xmlrpc/APICall.php', false, $this->proxyContext('http', $opts)));
         \json_encode($result);
         $this->_sessionID = $result[0];
 
@@ -157,8 +156,7 @@ class Tyroo extends \Oara\Network
         $opts = array('http' => array('method' => 'POST',
             'header' => 'Content-type: application/x-www-form-urlencoded',
             'content' => $postdata));
-        $context = \stream_context_create($opts);
-        $result = \unserialize(\file_get_contents('http://www.tyroocentral.com/www/api/v2/xmlrpc/APICall.php', false, $context));
+        $result = \unserialize(\file_get_contents('http://www.tyroocentral.com/www/api/v2/xmlrpc/APICall.php', false, $this->proxyContext('http', $opts)));
         $connection = $result[0];
 
         return $connection;
@@ -202,8 +200,7 @@ class Tyroo extends \Oara\Network
         $opts = array('http' => array('method' => 'POST',
             'header' => 'Content-type: application/x-www-form-urlencoded',
             'content' => $postdata));
-        $context = \stream_context_create($opts);
-        $result = \unserialize(\file_get_contents('http://www.tyroocentral.com/www/api/v2/xmlrpc/APICall.php', false, $context));
+        $result = \unserialize(\file_get_contents('http://www.tyroocentral.com/www/api/v2/xmlrpc/APICall.php', false, $this->proxyContext('http', $opts)));
         $json = \json_encode($result);
         $transactionsList = \json_decode($json, true);
         foreach ($transactionsList[1] as $transactionJson) {

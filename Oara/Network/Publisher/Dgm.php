@@ -46,6 +46,7 @@ class Dgm extends \Oara\Network
         // Reading the different parameters.
         $this->_user = $credentials ['user'];
         $this->_pass = $credentials ['password'];
+		$proxy = ($this->getProxy('http')) ? $this->getProxy('http')->asSoapOptions() : [];
 
         $wsdlUrl = 'http://webservices.dgperform.com/dgmpublisherwebservices.cfc?wsdl';
         // Setting the apiClient.
@@ -53,7 +54,7 @@ class Dgm extends \Oara\Network
             'encoding' => 'UTF-8',
             'compression' => SOAP_COMPRESSION_ACCEPT | SOAP_COMPRESSION_GZIP | SOAP_COMPRESSION_DEFLATE,
             'soap_version' => SOAP_1_1
-        ));
+        ) + $proxy);
     }
 
     /**

@@ -47,6 +47,10 @@ class Zanox extends \Oara\Network
         $secretKey = $credentials['secretkey'];
         $api->setConnectId($connectId);
         $api->setSecretKey($secretKey);
+        if (isset($this->_proxies['http'])) {
+            $proxy = $this->getProxy('http')->asSoapOptions();
+            $api->setProxy($proxy['proxy_host'], $proxy['proxy_port'], $proxy['proxy_username'], $proxy['proxy_pass']);
+        }
         $this->_apiClient = $api;
 
     }

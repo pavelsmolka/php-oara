@@ -45,7 +45,7 @@ class WebePartners extends \Oara\Network
         $this->_user = $user;
         $this->_pass = $password;
 
-        $this->_client = new \Oara\Curl\Access($credentials);
+        $this->_client = new \Oara\Curl\Access($credentials, $this->_proxies);
 
         $url = "http://panel.webepartners.pl/Account/Login";
         $urls = array();
@@ -127,12 +127,12 @@ class WebePartners extends \Oara\Network
         $connection = false;
         $loginUrl = "http://api.webepartners.pl/wydawca/Authorize?login={$this->_user}&password={$this->_pass}";
 
-        $context = \stream_context_create(array(
+        $context = array(
             'http' => array(
                 'header' => "Authorization: Basic " . \base64_encode("{$this->_user}:{$this->_pass}")
             )
-        ));
-        $data = \file_get_contents($loginUrl, false, $context);
+        );
+        $data = \file_get_contents($loginUrl, false, $this->proxyContext('http', $context));
         if ($data == true) {
             $connection = true;
         }
@@ -146,13 +146,13 @@ class WebePartners extends \Oara\Network
     {
         $merchants = array();
 
-        $context = \stream_context_create(array(
+        $context = array(
             'http' => array(
                 'header' => "Authorization: Basic " . \base64_encode("{$this->_user}:{$this->_pass}")
             )
-        ));
+        );
 
-        $data = \file_get_contents("http://api.webepartners.pl/wydawca/Programs", false, $context);
+        $data = \file_get_contents("http://api.webepartners.pl/wydawca/Programs", false, $this->proxyContext('http', $context));
         $dataArray = \json_decode($data, true);
         foreach ($dataArray as $merchantObject) {
             $obj = array();
@@ -173,15 +173,15 @@ class WebePartners extends \Oara\Network
     {
         $merchantIdList = \Oara\Utilities::getMerchantIdMapFromMerchantList($merchantList);
 
-        $context = \stream_context_create(array(
+        $context = array(
             'http' => array(
                 'header' => "Authorization: Basic " . \base64_encode("{$this->_user}:{$this->_pass}")
             )
-        ));
+        );
 
         $from = \urlencode($dStartDate->format("Y-m-d H:i:s"));
 
-        $data = \file_get_contents("http://api.webepartners.pl/wydawca/Auctions?from=$from", false, $context);
+        $data = \file_get_contents("http://api.webepartners.pl/wydawca/Auctions?from=$from", false, $this->proxyContext('http', $context));
         $dataArray = \json_decode($data, true);
         foreach ($dataArray as $transactionObject) {
 

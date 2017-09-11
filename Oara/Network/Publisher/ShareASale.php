@@ -209,6 +209,8 @@ class ShareASale extends \Oara\Network
         \curl_setopt($ch, CURLOPT_HTTPHEADER, $myHeaders);
         \curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
         \curl_setopt($ch, CURLOPT_HEADER, 0);
+        // Proxy the connection
+        $this->proxyCurl($ch);
         $returnResult = \curl_exec($ch);
         \curl_close($ch);
         return $returnResult;

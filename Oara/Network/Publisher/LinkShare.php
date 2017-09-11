@@ -44,7 +44,7 @@ class LinkShare extends \Oara\Network
     {
         $user = $credentials ['user'];
         $password = $credentials ['password'];
-        $this->_client = new \Oara\Curl\Access ($credentials);
+        $this->_client = new \Oara\Curl\Access ($credentials, $this->_proxies);
 
         $loginUrl = 'https://login.linkshare.com/sso/login?service=' . \urlencode("http://cli.linksynergy.com/cli/publisher/home.php");
         $valuesLogin = array(
@@ -245,6 +245,8 @@ class LinkShare extends \Oara\Network
                 curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
                 curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
                 curl_setopt($ch, CURLOPT_TIMEOUT, 50);
+                // Proxy the connection
+                $this->proxyCurl($ch);
                 $result = curl_exec($ch);
                 $info = curl_getinfo($ch);
                 if ($info['http_code'] != 200) {
@@ -259,6 +261,8 @@ class LinkShare extends \Oara\Network
                 curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
                 curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
                 curl_setopt($ch, CURLOPT_TIMEOUT, 50);
+                // Proxy the connection
+                $this->proxyCurl($ch);
                 $resultSignature = curl_exec($ch);
                 $info = curl_getinfo($ch);
                 if ($info['http_code'] != 200) {
@@ -340,7 +344,7 @@ class LinkShare extends \Oara\Network
                 $auxEndData = $auxEndData->add(new \DateInterval('P1Y'));
 
                 $url = "https://reportws.linksynergy.com/downloadreport.php?bdate=" . $auxStartDate->format("Ymd") . "&edate=" . $auxEndData->format("Ymd") . "&token=" . $site->token . "&nid=" . $this->_nid . "&reportid=1";
-                $result = \file_get_contents($url);
+                $result = \file_get_contents($url, false, $this->proxyContext('https'));
                 if (\preg_match("/You cannot request/", $result)) {
                     throw new \Exception ("Reached the limit");
                 }

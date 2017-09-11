@@ -39,7 +39,7 @@ class TradeDoubler extends \Oara\Network
     {
 
         $this->_credentials = $credentials;
-        $this->_client = new \Oara\Curl\Access($credentials);
+        $this->_client = new \Oara\Curl\Access($credentials, $this->_proxies);
 
         $user = $this->_credentials['user'];
         $password = $this->_credentials['password'];
@@ -265,7 +265,7 @@ class TradeDoubler extends \Oara\Network
                 $zip->close();
 
                 $unzipFilePath = \realpath(\dirname(COOKIES_BASE_DIR)) . '/pdf/' . $matches[2];
-                $fileContent = \file_get_contents($unzipFilePath);
+                $fileContent = \file_get_contents($unzipFilePath, false, $this->proxyContext('http'));
                 \unlink($newfile);
                 \unlink($unzipFilePath);
                 return $fileContent;

@@ -54,6 +54,7 @@ class CityAds_Curl
         curl_setopt($curl, CURLOPT_USERAGENT, $this->getUserAgent());
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
         curl_setopt($curl, CURLOPT_TIMEOUT, $this->getTimeOut());
+        $this->proxyCurl($curl);
         return $curl;
     }
 
