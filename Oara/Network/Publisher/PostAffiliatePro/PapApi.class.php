@@ -6507,6 +6507,21 @@ if (!class_exists('Gpf_Net_Http_Client', false)) {
         }
 
         protected function setProxyServer(Gpf_Net_Http_Request $request) {
+			$scheme = parse_url($request->getUrl(), PHP_URL_SCHEME);
+			if ($scheme === 'http' && php_sapi_name() == 'cli' && $proxy = getenv('HTTP_PROXY')) {
+				$proxyServer = parse_url($proxy, PHP_URL_HOST);
+				$proxyPort = parse_url($proxy, PHP_URL_PORT);
+				$proxyUser = null;
+				$proxyPassword = null;
+				$request->setProxyServer($proxyServer, $proxyPort, $proxyUser, $proxyPassword);
+			}
+			if ($scheme === 'https' && php_sapi_name() == 'cli' && $proxy = getenv('HTTPS_PROXY')) {
+				$proxyServer = parse_url($proxy, PHP_URL_HOST);
+				$proxyPort = parse_url($proxy, PHP_URL_PORT);
+				$proxyUser = null;
+				$proxyPassword = null;
+				$request->setProxyServer($proxyServer, $proxyPort, $proxyUser, $proxyPassword);
+			}
         }
     }
 }
