@@ -153,6 +153,7 @@ class PostAffiliatePro extends \Oara\Network
                     $transaction ['merchantId'] = 1;
                     $transaction ['unique_id'] = $rec->get('id');
                     $transaction ['date'] = $rec->get('dateinserted');
+					$transaction ['custom_id'] = $rec->get('firstclickdata1');
                     if ($rec->get('rstatus') == 'D') {
                         $transaction ['status'] = \Oara\Utilities::STATUS_DECLINED;
                     } else if ($rec->get('rstatus') == 'P') {
