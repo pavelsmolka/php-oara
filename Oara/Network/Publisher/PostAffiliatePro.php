@@ -153,7 +153,14 @@ class PostAffiliatePro extends \Oara\Network
                     $transaction ['merchantId'] = 1;
                     $transaction ['unique_id'] = $rec->get('id');
                     $transaction ['date'] = $rec->get('dateinserted');
-					$transaction ['custom_id'] = $rec->get('firstclickdata1');
+
+					// Custom ID is reported as firstclickdata1 or lastclickdata1 - capture first non-empty value
+					if (!empty($rec->get('firstclickdata1'))) {
+						$transaction ['custom_id'] = $rec->get('firstclickdata1');
+					} elseif (!empty($rec->get('lastclickdata1'))) {
+						$transaction ['custom_id'] = $rec->get('lastclickdata1');
+					}
+
                     if ($rec->get('rstatus') == 'D') {
                         $transaction ['status'] = \Oara\Utilities::STATUS_DECLINED;
                     } else if ($rec->get('rstatus') == 'P') {
