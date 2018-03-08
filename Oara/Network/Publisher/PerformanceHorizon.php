@@ -96,7 +96,7 @@ class PerformanceHorizon extends \Oara\Network
             foreach ($merchantList["campaigns"] as $merchant) {
                 $merchant = $merchant["campaign"];
                 $obj = Array();
-                $obj['cid'] = \str_replace("l", "", $merchant["campaign_id"]);
+                $obj['cid'] = $merchant["campaign_id"];
                 $obj['name'] = $merchant["title"];
                 $merchants[] = $obj;
             }
@@ -135,7 +135,6 @@ class PerformanceHorizon extends \Oara\Network
 
                 foreach ($conversionList["conversions"] as $conversion) {
                     $conversion = $conversion["conversion_data"];
-                    $conversion["campaign_id"] = \str_replace("l", "", $conversion["campaign_id"]);
                     if (isset($merchantIdList[$conversion["campaign_id"]])) {
 
                         if (\count($this->_sitesAllowed) == 0 || \in_array($conversion["campaign_id"], $this->_sitesAllowed)){
