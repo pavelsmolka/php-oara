@@ -19,6 +19,9 @@ namespace Oara\Network\Publisher;
      * ------------
      * Fubra Limited <support@fubra.com> , +44 (0)1252 367 200
      **/
+
+use Gpf_Data_Record;
+
 /**
  * Export Class
  *
@@ -125,14 +128,7 @@ class PostAffiliatePro extends \Oara\Network
         $recordset = $grid->getRecordset();
         // iterate through the records
         foreach ($recordset as $rec) {
-            $transaction = Array();
-            $transaction ['merchantId'] = 1;
-            $transaction ['unique_id'] = $rec->get('id');
-            $transaction ['date'] = $rec->get('dateinserted');
-            $transaction ['status'] = \Oara\Utilities::STATUS_CONFIRMED;
-            $transaction ['amount'] = \Oara\Utilities::parseDouble($rec->get('totalcost'));
-            $transaction ['commission'] = \Oara\Utilities::parseDouble($rec->get('commission'));
-            $totalTransactions [] = $transaction;
+            $totalTransactions [] = $this->getTransactionFromRecord($rec);
         }
         //----------------------------------------------
         // in case there are more than 30 records total
@@ -149,31 +145,39 @@ class PostAffiliatePro extends \Oara\Network
                 $recordset = $request->getGrid()->getRecordset();
                 // iterate through the records
                 foreach ($recordset as $rec) {
-                    $transaction = Array();
-                    $transaction ['merchantId'] = 1;
-                    $transaction ['unique_id'] = $rec->get('id');
-                    $transaction ['date'] = $rec->get('dateinserted');
-
-					// Custom ID is reported as firstclickdata1 or lastclickdata1 - capture first non-empty value
-					if (!empty($rec->get('firstclickdata1'))) {
-						$transaction ['custom_id'] = $rec->get('firstclickdata1');
-					} elseif (!empty($rec->get('lastclickdata1'))) {
-						$transaction ['custom_id'] = $rec->get('lastclickdata1');
-					}
-
-                    if ($rec->get('rstatus') == 'D') {
-                        $transaction ['status'] = \Oara\Utilities::STATUS_DECLINED;
-                    } else if ($rec->get('rstatus') == 'P') {
-                        $transaction ['status'] = \Oara\Utilities::STATUS_PENDING;
-                    } else if ($rec->get('rstatus') == 'A') {
-                        $transaction ['status'] = \Oara\Utilities::STATUS_CONFIRMED;
-                    }
-                    $transaction ['amount'] = \Oara\Utilities::parseDouble($rec->get('totalcost'));
-                    $transaction ['commission'] = \Oara\Utilities::parseDouble($rec->get('commission'));
-                    $totalTransactions [] = $transaction;
+                    $totalTransactions [] = $this->getTransactionFromRecord($rec);
                 }
             }
         }
         return $totalTransactions;
+    }
+
+	protected function getTransactionFromRecord(Gpf_Data_Record $rec) {
+
+		$transaction = Array();
+		$transaction ['merchantId'] = 1;
+		$transaction ['unique_id'] = $rec->get('id');
+		$transaction ['date'] = $rec->get('dateinserted');
+
+		// Custom ID is reported as firstclickdata1 or lastclickdata1 - capture first non-empty value
+		$firstClickData = $rec->get('firstclickdata1');
+		$lastClickData = $rec->get('lastclickdata1');
+		if (!empty($firstClickData)) {
+			$transaction ['custom_id'] = $firstClickData;
+		} elseif (!empty($lastClickData)) {
+			$transaction ['custom_id'] = $lastClickData;
+		}
+
+		if ($rec->get('rstatus') == 'D') {
+			$transaction ['status'] = \Oara\Utilities::STATUS_DECLINED;
+		} else if ($rec->get('rstatus') == 'P') {
+			$transaction ['status'] = \Oara\Utilities::STATUS_PENDING;
+		} else if ($rec->get('rstatus') == 'A') {
+			$transaction ['status'] = \Oara\Utilities::STATUS_CONFIRMED;
+		}
+		$transaction ['amount'] = \Oara\Utilities::parseDouble($rec->get('totalcost'));
+		$transaction ['commission'] = \Oara\Utilities::parseDouble($rec->get('commission'));
+
+		return $transaction;
     }
 }

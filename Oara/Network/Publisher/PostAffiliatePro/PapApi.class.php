@@ -2009,21 +2009,24 @@ if (!class_exists('Gpf_Net_Http_ClientBase', false)) {
           if($cookies) {
               @curl_setopt($session, CURLOPT_COOKIE, $cookies);
           }
-  
+
           @curl_setopt($session, CURLOPT_HEADER, true);
           @curl_setopt($session, CURLOPT_CONNECTTIMEOUT, self::CONNECTION_TIMEOUT);
-          @curl_setopt($session, CURLOPT_HTTPHEADER, $request->getHeaders());
-          @curl_setopt($session, CURLOPT_FOLLOWLOCATION, true);
-          @curl_setopt($session, CURLOPT_RETURNTRANSFER, true);
-          if ($request->getHttpPassword() != '' && $request->getHttpUser() != '') {
-          	@curl_setopt($session, CURLOPT_USERPWD, $request->getHttpUser() . ":" . $request->getHttpPassword());
-          	@curl_setopt($session, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
-          }
-          @curl_setopt ($session, CURLOPT_SSL_VERIFYHOST, 0);
-          @curl_setopt ($session, CURLOPT_SSL_VERIFYPEER, 0);
-          if ($request->getMaxTimeout() != '') {
-              @curl_setopt($ch, CURLOPT_TIMEOUT, $request->getMaxTimeout()); 
-          }
+		  @curl_setopt($session, CURLOPT_HTTPHEADER, array_merge($request->getHeaders(), array(
+				  'User-Agent: Hawk Bot',
+				  'Accept: */*',
+		  )));
+		  @curl_setopt($session, CURLOPT_FOLLOWLOCATION, true);
+		  @curl_setopt($session, CURLOPT_RETURNTRANSFER, true);
+		  if ($request->getHttpPassword() != '' && $request->getHttpUser() != '') {
+			  @curl_setopt($session, CURLOPT_USERPWD, $request->getHttpUser() . ":" . $request->getHttpPassword());
+			  @curl_setopt($session, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
+		  }
+		  @curl_setopt ($session, CURLOPT_SSL_VERIFYHOST, 0);
+		  @curl_setopt ($session, CURLOPT_SSL_VERIFYPEER, 0);
+		  if ($request->getMaxTimeout() != '') {
+			  @curl_setopt($session, CURLOPT_TIMEOUT, $request->getMaxTimeout());
+		  }
   
           $this->setupCurlProxyServer($session, $request);
   
