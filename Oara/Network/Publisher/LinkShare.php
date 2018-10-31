@@ -210,7 +210,7 @@ class LinkShare extends \Oara\Network
                     }
                     $obj ['cid'] = ( int )$merchantArray [2];
                     $obj ['name'] = $merchantArray [0];
-                    $obj ['description'] = $merchantArray [3];
+                    // $obj ['description'] = $merchantArray [3]; // Excluding description since it contains invalid characters
                     $obj ['url'] = $merchantArray [1];
                     $merchants [] = $obj;
                     $merchantIdMap [] = $obj ['cid'];
