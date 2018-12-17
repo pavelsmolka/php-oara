@@ -107,7 +107,8 @@ class TradeDoubler extends \Oara\Network
         foreach ($merchantReportList as $key => $value) {
             $obj = Array();
             $obj['cid'] = $key;
-            $obj['name'] = $value;
+            $obj['name'] = $value['name'];
+            $obj['site_id'] = $value['site_id'];
             $merchants[] = $obj;
         }
 
@@ -308,7 +309,10 @@ class TradeDoubler extends \Oara\Network
             $merchantExportArray = \str_getcsv($exportData[$i], ",");
 
             if ($merchantExportArray[2] != '' && $merchantExportArray[4] != '') {
-                $merchantReportList[$merchantExportArray[4]] = $merchantExportArray[2];
+                $merchantReportList[$merchantExportArray[4]] = Array(
+                    'name' => $merchantExportArray[2],
+                    'site_id' => $merchantExportArray[1]
+                );
                 $websiteMap[$merchantExportArray[0]] = "";
             }
 
