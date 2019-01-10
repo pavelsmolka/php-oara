@@ -1,6 +1,10 @@
 <?php
+
 namespace Oara\Network\Publisher;
-	/**
+
+use Oara\SanitizingSoapClient;
+
+    /**
 	 * The goal of the Open Affiliate Report Aggregator (OARA) is to develop a set
 	 * of PHP classes that can download affiliate reports from a number of affiliate networks, and store the data in a common format.
 	 *
@@ -49,7 +53,7 @@ class WebGains extends \Oara\Network
 
 		$wsdlUrl = 'http://ws.webgains.com/aws.php';
 		//Setting the client.
-		$this->_soapClient = new \SoapClient($wsdlUrl, array('login' => $this->_user,
+		$this->_soapClient = new SanitizingSoapClient($wsdlUrl, array('login' => $this->_user,
 				'encoding' => 'UTF-8',
 				'password' => $this->_password,
 				'compression' => SOAP_COMPRESSION_ACCEPT | SOAP_COMPRESSION_GZIP | SOAP_COMPRESSION_DEFLATE,
