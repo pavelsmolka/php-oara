@@ -198,7 +198,7 @@ class LinkShare extends \Oara\Network
             $urls [] = new \Oara\Curl\Request ('http://cli.linksynergy.com/cli/publisher/programs/carDownload.php', array());
             $result = $this->_client->get($urls);
 
-            $exportData = \explode(",\n", $result [0]);
+            $exportData = \explode("\n", $result [0]);
 
             $num = \count($exportData);
             for ($i = 1; $i < $num - 1; $i++) {
