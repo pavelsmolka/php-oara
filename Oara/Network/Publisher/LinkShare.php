@@ -198,12 +198,14 @@ class LinkShare extends \Oara\Network
             $urls [] = new \Oara\Curl\Request ('http://cli.linksynergy.com/cli/publisher/programs/carDownload.php', array());
             $result = $this->_client->get($urls);
 
-            $exportData = \explode("\n", $result [0]);
+            $fileHandle = fopen('php://memory', 'w+');
+            fwrite($fileHandle, $result[0]);
+            rewind($fileHandle);
 
-            $num = \count($exportData);
-            for ($i = 1; $i < $num - 1; $i++) {
-                $merchantArray = \str_getcsv($exportData [$i], ",", '"');
-                if (!\in_array($merchantArray [2], $merchantIdMap)) {
+            fgetcsv($fileHandle); // Skip the header
+
+            while (false !== ($merchantArray = fgetcsv($fileHandle))) {
+                if (!\in_array($merchantArray[2], $merchantIdMap)) {
                     $obj = Array();
                     if (!isset ($merchantArray [2])) {
                         throw new \Exception ("Error getting merchants");
