@@ -218,6 +218,8 @@ class LinkShare extends \Oara\Network
                     $merchantIdMap [] = $obj ['cid'];
                 }
             }
+
+            fclose($fileHandle);
         }
         return $merchants;
     }

@@ -1,6 +1,6 @@
 <?php
 
-namespace Oara;
+namespace Oara\Network;
 
 class SanitizingSoapClient extends \SoapClient{
 

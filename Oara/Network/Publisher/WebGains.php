@@ -2,7 +2,7 @@
 
 namespace Oara\Network\Publisher;
 
-use Oara\SanitizingSoapClient;
+use Oara\Network\SanitizingSoapClient;
 
     /**
 	 * The goal of the Open Affiliate Report Aggregator (OARA) is to develop a set
