@@ -43,12 +43,21 @@ class Bol extends \Oara\Network
 
         $this->_client = new \Oara\Curl\Access($credentials, $this->_proxies);
 
+        // We need the CSRF token from the login page in order to successfully login
+        $loginUrl = new \Oara\Curl\Request('https://partner.bol.com/partner/sso.do', array());
+        $exportReport = $this->_client->get(array($loginUrl));
+        $doc = new \DOMDocument();
+        @$doc->loadHTML($exportReport[0]);
+        $csrfInputElement = $doc->getElementById('csrftoken');
+        $csrfToken = $csrfInputElement->getAttribute('value');
+
         $valuesLogin = array(
             new \Oara\Curl\Parameter('j_username', $user),
-            new \Oara\Curl\Parameter('j_password', $password)
+            new \Oara\Curl\Parameter('j_password', $password),
+            new \Oara\Curl\Parameter('csrftoken', $csrfToken),
         );
 
-        $loginUrl = 'https://partnerprogramma.bol.com/partner/j_security_check';
+        $loginUrl = 'https://login.bol.com/j_spring_security_check';
         $urls = array();
         $urls[] = new \Oara\Curl\Request($loginUrl, $valuesLogin, $this->getProxy('https'));
         $this->_client->post($urls);
@@ -66,7 +75,7 @@ class Bol extends \Oara\Network
         $urls[] = new \Oara\Curl\Request('https://partnerprogramma.bol.com/partner/index.do?', array(), $this->getProxy('https'));
         $exportReport = $this->_client->get($urls);
 
-        if (\preg_match('/partner\/logout\.do/', $exportReport[0], $match)) {
+        if (\preg_match('/\/account\/uitloggen/', $exportReport[0], $match)) {
             $connection = true;
         }
         return $connection;
